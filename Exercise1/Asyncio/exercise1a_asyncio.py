@@ -87,7 +87,6 @@ async def exercise1A_thresholding(filename, usedFilter):
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 
-    
     input("Press any key to exit the program")
     plt.close("all")
     sys.exit(0)
