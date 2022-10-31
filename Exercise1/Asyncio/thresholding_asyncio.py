@@ -6,7 +6,7 @@ class DigitalImageProcessing:
     def __init__(self, grayScaleImage):
         self.grayScaleImage = grayScaleImage
 
-    def calculateHistogram(self):
+    async def calculateHistogram(self):
         """Calculate histogram of a grayscale image.
         @param grayImage : uint8 2D numpy array of variable size
         output: image histogram"""
@@ -16,7 +16,7 @@ class DigitalImageProcessing:
             histogram[gray_threshold] = pixel_num
         self.imageHistogram = histogram
 
-    def drawHistogram(self):
+    async def drawHistogram(self):
         """Draws calculated histogram.
         @param histogram : 1D numpy array of variable size and type"""
         element_num = self.imageHistogram.shape[0]
@@ -28,7 +28,7 @@ class DigitalImageProcessing:
         plt.grid(True)
         return 0
 
-    def setThreshold(self):
+    async def setThreshold(self):
         """Sets threshold of a grayscale image by maximizing information.
         @param grayImage : Image we are setting a threshold to
         output: Value of threshold, which maximizes information"""
