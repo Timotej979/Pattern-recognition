@@ -33,6 +33,32 @@ def thresholdImage(processedImage, ImageProcessingObj):
     _, thresholdedImage = cv2.threshold(processedImage, ImageProcessingObj.imageThreshold, 255, 0)
     return thresholdedImage
 
+def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj):
+    # Display simple plots
+    ImageProcessingObj.drawHistogram()
+
+    plt.figure()
+    plt.title("RGB image")
+    plt.imshow(readImage)
+
+    plt.figure()
+    plt.title("Grayscale image")
+    plt.imshow(grayScaleImage, cmap = "gray")
+
+    plt.figure()
+    plt.title("Processed image")
+    plt.imshow(processedImage, cmap = "gray")
+
+    plt.figure()
+    plt.title("Thresholded image")
+    plt.imshow(thresholdedImage, cmap = "gray")
+
+    # Program execution time
+    stop = time.time()
+    stopp = time.process_time()
+    plt.show()
+    return stop, stopp
+
 async def exercise1A_thresholding(filename, usedFilter):
     # Program runtime
     start = time.time()
@@ -49,35 +75,19 @@ async def exercise1A_thresholding(filename, usedFilter):
 
     # Await all tasks while displaying simple plots
     await ImageProcessingObj.calculateHistogram()
-    await ImageProcessingObj.drawHistogram()
     await ImageProcessingObj.setThreshold()
-
-    # Display simple plots
-    plt.figure()
-    plt.title("RGB image")
-    plt.imshow(readImage)
-
-    plt.figure()
-    plt.title("Grayscale image")
-    plt.imshow(grayScaleImage, cmap = "gray")
-
-    plt.figure()
-    plt.title("Processed image")
-    plt.imshow(processedImage, cmap = "gray")
-
+    
     thresholdedImage = await loop.run_in_executor(executor, functools.partial(thresholdImage, processedImage, ImageProcessingObj))
 
-    plt.figure()
-    plt.title("Thresholded image")
-    plt.imshow(thresholdedImage, cmap = "gray")
-    
+    stop, stopp = await loop.run_in_executor(executor, functools.partial(displayPlots, readImage,grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj))
+
     # Program runtime
-    stop = time.time()
-    stopp = time.process_time()
+    # EXECUTION: 2.92s
+    # PROCESS: 1.00s
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 
-    plt.show()
+    
     input("Press any key to exit the program")
     plt.close("all")
     sys.exit(0)

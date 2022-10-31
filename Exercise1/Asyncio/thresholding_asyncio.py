@@ -16,7 +16,7 @@ class DigitalImageProcessing:
             histogram[gray_threshold] = pixel_num
         self.imageHistogram = histogram
 
-    async def drawHistogram(self):
+    def drawHistogram(self):
         """Draws calculated histogram.
         @param histogram : 1D numpy array of variable size and type"""
         element_num = self.imageHistogram.shape[0]
