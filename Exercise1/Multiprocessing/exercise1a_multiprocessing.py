@@ -2,7 +2,7 @@ from cv2 import threshold
 import matplotlib.pyplot as plt
 import cv2, sys, logging, time
 
-from thresholding import DigitalImageProcessing
+from thresholding_multiprocessing import DigitalImageProcessing
 
 
 def exercise1A_thresholding():

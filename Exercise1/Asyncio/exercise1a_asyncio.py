@@ -34,10 +34,14 @@ def thresholdImage(processedImage, ImageProcessingObj):
     return thresholdedImage
 
 async def exercise1A_thresholding(filename, usedFilter):
+    # Program runtime
     start = time.time()
+    startp = time.process_time()
+    
     # Read image and convert to correct colourspace
     readImage, grayScaleImage = await loop.run_in_executor(executor, functools.partial(loadImage, filename))
-
+    
+    # Process image
     processedImage = await loop.run_in_executor(executor, functools.partial(filterImage, usedFilter, grayScaleImage))
 
     # Create new DIP object to calculate image parameters and display them
@@ -67,9 +71,12 @@ async def exercise1A_thresholding(filename, usedFilter):
     plt.title("Thresholded image")
     plt.imshow(thresholdedImage, cmap = "gray")
     
+    # Program runtime
     stop = time.time()
-    logging.info("Program runtime: {} seconds".format(stop - start))
-    
+    stopp = time.process_time()
+    logging.info("Program execution time: {} seconds".format(stop - start))
+    logging.info("Program process time: {} seconds".format(stopp - startp))
+
     plt.show()
     input("Press any key to exit the program")
     plt.close("all")
