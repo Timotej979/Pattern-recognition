@@ -1,23 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
-import sys
-
-
 
 class DigitalImageProcessing():
 
-    def __init__(self, greyImage):
-        self.greyImage = greyImage
+    def __init__(self, grayScaleImage):
+        self.grayScaleImage = grayScaleImage
 
     def calculateHistogram(self):
         """Calculate histogram of a grayscale image.
         @param greyImage : uint8 2D numpy array of variable size
         output: image histogram"""
         histogram = np.zeros((256,), dtype="float64")
-        for grey_threshold in range(256):
-            pixel_num = np.sum(self.greyImage == grey_threshold)
-            histogram[grey_threshold] = pixel_num
+        for gray_threshold in range(256):
+            pixel_num = np.sum(self.grayScaleImage == gray_threshold)
+            histogram[gray_threshold] = pixel_num
         self.histogram = histogram
 
     def drawHistogram(self):
@@ -36,20 +32,20 @@ class DigitalImageProcessing():
         """Sets threshold of a grayscale image by maximizing information.
         @param greyImage : Image we are setting a threshold to
         output: Value of threshold, which maximizes information"""
-        histogram = self.calculateHistogram(self.greyImage)
+        histogram = self.calculateHistogram(self.grayScaleImage)
 
-        # calculate number of pixels in image
-        n = self.greyImage.shape[0] * self.greyImage.shape[1]
+        # Calculate number of pixels in image
+        n = self.grayScaleImage.shape[0] * self.grayScaleImage.shape[1]
 
-        # calculate distribution of relative frequencies, P
+        # Calculate distribution of relative frequencies, P
         P = histogram / n
 
-        # initialize vector where we save our  information
-        # for every possible value of threshold
+        # Initialize vector where we save our  information
+        # For every possible value of threshold
         information = np.zeros_like(histogram)
 
-        # calculate information at every possible value of threshold
-        # set threshold value which maximizes information
+        # Calculate information at every possible value of threshold
+        # Set threshold value which maximizes information
         for t in range(1, 254):
             normalizedP = np.sum(P[:t])
             
@@ -63,6 +59,7 @@ class DigitalImageProcessing():
 
             information[t] = H0 + H1
 
-        # calculate information at every possible threshold:
-        # search for threshold value where the information is maximized
+        # Calculate information at every possible threshold:
+        # Search for threshold value where the information is maximized
         t = np.argmax(information)
+        self.threshold = t
