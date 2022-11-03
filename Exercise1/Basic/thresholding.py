@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-class DigitalImageProcessing:
+class Thresholding:
 
     def __init__(self, grayScaleImage):
         self.grayScaleImage = grayScaleImage

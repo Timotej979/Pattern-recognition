@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import cv2, sys, logging, time
 
 from thresholding import Thresholding
+from shapes import Searcher
 
 
-def exercise1A_thresholding():
+def exercise1b_shaping():
     # In Short: It allows you to execute code when the file runs as a script, but not when it's imported as a module
     try:
         filename = sys.argv[1]
@@ -17,6 +18,8 @@ def exercise1A_thresholding():
     start = time.time()
     startp = time.process_time()
 
+
+    """FIRST EXECUTE EXERCISE1A:"""
     # Read image and convert to correct colourspace
     readImage = cv2.imread(filename)
     readImage = cv2.cvtColor(readImage, cv2.COLOR_BGR2RGB)
@@ -36,6 +39,7 @@ def exercise1A_thresholding():
         processedImage = cv2.medianBlur(grayScaleImage, 9)
     else:
         logging.error(" <Image filter number> not valid, choose numbers 0-3")
+
 
     # Create new DIP object to calculate image parameters and display them
     ImageThresholdingObj = Thresholding(processedImage)
@@ -63,20 +67,26 @@ def exercise1A_thresholding():
     plt.title("Thresholded image")
     plt.imshow(thresholdedImage, cmap = "gray")
 
-    # Program runtime
-    # EXECUTION: 1.44s
-    # PROCESS: 1.39s
-    stop = time.time()
-    stopp = time.process_time()
-    logging.info("Program execution time: {} seconds".format(stop - start))
-    logging.info("Program process time: {} seconds".format(stopp - startp))
 
-    plt.show()
-    input("Press any key to exit the program")
+    """SECOND EXECUTE EXERCISE1B:"""
+    ImageSearcherObj = Searcher(thresholdedImage)
+    ImageSearcherObj.searchShapes()
+
+    print(ImageSearcherObj.shapes)
+
+
+    # TODO: write code in Searcher class
+    # TODO: find shapes in thresholded image
+    # TODO: separately draw all shapes and one shape at a time
+    # TODO: save longest shape in text file in points list
+
+    plt.show(block=False)
+
+    input("Press any key.")
     plt.close("all")
     sys.exit(0)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.INFO)
-    exercise1A_thresholding()
+    exercise1b_shaping()
