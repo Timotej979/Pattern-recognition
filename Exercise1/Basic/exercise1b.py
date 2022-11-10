@@ -41,7 +41,7 @@ def exercise1b_shaping():
         logging.error(" <Image filter number> not valid, choose numbers 0-3")
 
 
-    # Create new DIP object to calculate image parameters and display them
+    # Create new Thresholding object to calculate image parameters and display them
     ImageThresholdingObj = Thresholding(processedImage)
     ImageThresholdingObj.calculateHistogram()
     ImageThresholdingObj.drawHistogram()
@@ -76,14 +76,21 @@ def exercise1b_shaping():
     plt.title("Image with all shapes")
     plt.imshow(ImageSearcherObj.drawAllShapes([80, 255]), cmap = "gray")
 
+    longestShape = ImageSearcherObj.getLongestShape()
+    with open('LongestShape.txt', 'w') as f:
+        f.write(str(longestShape.get('points')))
+
     plt.figure()
     plt.title("Image with the longest shape")
-    plt.imshow(ImageSearcherObj.drawShape(ImageSearcherObj.getLongestShape(), 255), cmap = 'gray')
+    plt.imshow(ImageSearcherObj.drawShape(longestShape, 255), cmap = 'gray')
 
-    # TODO: write code in Searcher class
-    # TODO: find shapes in thresholded image
-    # TODO: separately draw all shapes and one shape at a time
-    # TODO: save longest shape in text file in points list
+    # Program runtime
+    # EXECUTION: 1.44s
+    # PROCESS: 1.39s
+    stop = time.time()
+    stopp = time.process_time()
+    logging.info("Program execution time: {} seconds".format(stop - start))
+    logging.info("Program process time: {} seconds".format(stopp - startp))
 
     plt.show(block=False)
 

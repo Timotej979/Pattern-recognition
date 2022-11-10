@@ -37,7 +37,7 @@ def exercise1A_thresholding():
     else:
         logging.error(" <Image filter number> not valid, choose numbers 0-3")
 
-    # Create new DIP object to calculate image parameters and display them
+    # Create new Thresholding object to calculate image parameters and display them
     ImageThresholdingObj = Thresholding(processedImage)
     ImageThresholdingObj.calculateHistogram()
     ImageThresholdingObj.drawHistogram()
