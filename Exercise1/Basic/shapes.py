@@ -14,14 +14,14 @@ class Searcher():
         self.inputImage = inputImage
         self.shapes = []
 
-        # dimenzije slike
+        # Image dimensions
         self.m = inputImage.shape[0]
         self.n = inputImage.shape[1]
 
-        # inicializacija seznama preverjenih elementov
+        # Initialize list of  checked lements
         self.LCE = []
 
-        # inicializacija pomožnih oznak
+        # Initialize pixel side notes
         self.pixelNotes = np.zeros((self.m, self.n), dtype=np.unicode_)
         for i in range(self.m):
             for j in range(self.m):
@@ -162,9 +162,6 @@ class Searcher():
                 new = "T"
             elif exit == Direction.DOWN or exit == Direction.LEFT:
                 new = "D"
-        # ADDED
-        else:
-            pass
 
         # If the previous pixel note is 'N', we are on this point the first time and the new pixel note is writen by above rule. Otherwise the pixel note is set by the state table:
 
@@ -182,17 +179,35 @@ class Searcher():
 
     def getLongestShape(self):
         """Returns the longest shape from the found shapes, which usualy is the biggest object on the image"""
-        # TODO: write function
-        return self.shapes[0]
+        maxIndex = 0
+        i = 0
+        
+        for shape in self.shapes:
+            if len(shape.get('points')) > len(self.shapes[maxIndex].get('points')):
+                maxIndex = i
+            i = i + 1
+        
+        return self.shapes[maxIndex]
 
-    def drawAllShapes(self):
+    def drawAllShapes(self, grayScaleInterval):
         """Returns an image with all shapes drawn. Every shape has a different gray value on the final picture"""
         shapeImage = np.zeros_like(self.inputImage)
-        # TODO: write function
+        i = 0
+
+        for shape in self.shapes:
+            # Grayscale value range on interval [51, 204]
+            grayColor = round( i * (grayScaleInterval[1] - grayScaleInterval[0])/len(self.shapes) + grayScaleInterval[0] )
+            i = i + 1
+            for point in shape.get('points'):
+                shapeImage[point[1]][point[0]] = grayColor 
+
         return shapeImage
 
-    def drawShape(inputImage, shape):
+    def drawShape(self, shape, grayColor):
         """Draws the given shape on the picture of the same resolution as the inputImage"""
-        shapeImage = np.zeros_like(inputImage)
-        # TODO: write function
+        shapeImage = np.zeros_like(self.inputImage)
+
+        for point in shape.get('points'):
+            shapeImage[point[1]][point[0]] = grayColor
+
         return shapeImage

@@ -72,8 +72,13 @@ def exercise1b_shaping():
     ImageSearcherObj = Searcher(thresholdedImage)
     ImageSearcherObj.searchShapes()
 
-    print(ImageSearcherObj.shapes)
+    plt.figure()
+    plt.title("Image with all shapes")
+    plt.imshow(ImageSearcherObj.drawAllShapes([80, 255]), cmap = "gray")
 
+    plt.figure()
+    plt.title("Image with the longest shape")
+    plt.imshow(ImageSearcherObj.drawShape(ImageSearcherObj.getLongestShape(), 255), cmap = 'gray')
 
     # TODO: write code in Searcher class
     # TODO: find shapes in thresholded image
