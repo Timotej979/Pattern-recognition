@@ -1,25 +1,41 @@
 import matplotlib.pyplot as plt
-import cv2, sys, logging, time, os
+import cv2, os, logging, asyncio, aiofiles, functools, time
+from concurrent.futures import ProcessPoolExecutor
 
 from sklearn.feature_selection import SelectKBest
-from features import *
+from features_asyncio import *
 
 
-def exercise1c_features():
-    # Read all images from Pictures/ directory preprocess them and save them to a list
-    directory = 'Pictures/'
+"""SUPPORT FUNCTION"""
+def listDirFiles(directory):
+    """Read all images from Pictures/ directory preprocess them and save them to a list"""
     try:
         inputImages = next(os.walk(directory), (None, None, []))[2]
+        return inputImages
     except:
         logging.error("Error reading directory /Pictures/")
+
+
+"""MAIN ASYNC FUNCTION"""
+async def exercise1c_features():
+    # Program runtime
+    start = time.time()
+    startp = time.process_time()
+
+    # Change directory folder of images here
+    directory = 'Pictures/'
+    inputImages = await loop.run_in_executor(executor, functools.partial(listDirFiles, directory))
 
     # Calculate feature vector for every picture
     vectorsFFC = []
     for inputImage in inputImages:
-        vectorFFC = calculateFastFourierCoeficients( cv2.imread(directory + inputImage), 4, 4 )
+        vectorFFC = await calculateFastFourierCoeficients( cv2.imread(directory + inputImage), 4, 4 )
         vectorsFFC.append(vectorFFC)
 
-    # Plot feature vectors
+    # Calculate feature vectors
+    logX = []
+    logShow = []
+    logColor = []
     for i in range(len(vectorsFFC)):
         if i < 3:
             color = "b"
@@ -27,7 +43,7 @@ def exercise1c_features():
             color = "g"
         
         modifiedVector = vectorsFFC[i]
-        x = np.arange(len(modifiedVector)) + 0.12 * i
+        x = np.arange(len(modifiedVector)) + 0.12 * i 
 
         # For better display of values we used the logarithmic scale by using the equation:
         # logShow = sign(vector) * log_10( |vector| )
@@ -35,7 +51,6 @@ def exercise1c_features():
         plt.bar(x, logShow, width=0.1, color=color)
 
     plt.grid(True)
-    plt.show()
 
     # Pick the best features for spliting appart different object classes
     X = np.array(vectorsFFC)
@@ -60,7 +75,6 @@ def exercise1c_features():
     plt.imshow(distancesEVK)
     plt.colorbar()
     plt.tight_layout()
-    plt.show()
 
     plt.figure()
     plt.title("Cosine similarity")
@@ -68,8 +82,21 @@ def exercise1c_features():
     plt.colorbar()
     plt.tight_layout()
     plt.show()
-    
+
+    # Program execution time
+    stop = time.time()
+    stopp = time.process_time()
+
+    # Program runtime
+    logging.info("Program execution time: {} seconds".format(stop - start))
+    logging.info("Program process time: {} seconds".format(stopp - startp))
+
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.INFO)
-    exercise1c_features()
+    executor = ProcessPoolExecutor(1)
+
+    # Get asyncio loop and start function
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(exercise1c_features())
+    

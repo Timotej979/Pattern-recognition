@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
-import cv2, sys, logging, asyncio, functools, time
+import cv2, sys, logging, asyncio, aiofiles, functools, time
 from concurrent.futures import ProcessPoolExecutor
 
 from thresholding_asyncio import Thresholding
+from shapes_asyncio import Searcher
 
 
 """SUPPORT FUNCTIONS"""
@@ -35,7 +36,7 @@ def thresholdImage(processedImage, ImageProcessingObj):
     _, thresholdedImage = cv2.threshold(processedImage, ImageProcessingObj.imageThreshold, 255, 0)
     return thresholdedImage
 
-def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj):
+def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj, allShapesImage, longestShapeImage):
     # Display simple plots
     ImageProcessingObj.drawHistogram()
 
@@ -55,6 +56,14 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
     plt.title("Thresholded image")
     plt.imshow(thresholdedImage, cmap = "gray")
 
+    plt.figure()
+    plt.title("Image with all shapes")
+    plt.imshow(allShapesImage, cmap = 'gray')
+
+    plt.figure()
+    plt.title("Image with the longest shape")
+    plt.imshow(longestShapeImage, cmap = 'gray')
+
     # Program execution time
     stop = time.time()
     stopp = time.process_time()
@@ -63,11 +72,12 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
 
 
 """MAIN ASYNC FUNCTION"""
-async def exercise1a_thresholding(filename, usedFilter):
+async def exercise1b_shaping(filename, usedFilter):
     # Program runtime
     start = time.time()
     startp = time.process_time()
     
+    """FIRST EXECUTE EXERCISE1A:"""
     # Read image and convert to correct colourspace
     readImage, grayScaleImage = await loop.run_in_executor(executor, functools.partial(loadImage, filename))
     
@@ -80,14 +90,24 @@ async def exercise1a_thresholding(filename, usedFilter):
     # Await all tasks while displaying simple plots
     await ImageProcessingObj.calculateHistogram()
     await ImageProcessingObj.setThreshold()
-    
+
     thresholdedImage = await loop.run_in_executor(executor, functools.partial(thresholdImage, processedImage, ImageProcessingObj))
 
-    stop, stopp = await loop.run_in_executor(executor, functools.partial(displayPlots, readImage,grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj))
+    """SECOND EXECUTE EXERCISE1B:"""
+    ImageSearcherObj = Searcher(thresholdedImage)
+    await ImageSearcherObj.searchShapes()
+
+    allShapesImage = await ImageSearcherObj.drawAllShapes([80, 255])
+
+    longestShape = await ImageSearcherObj.getLongestShape()
+    longestShapeImage = await ImageSearcherObj.drawShape(longestShape, 255)
+
+    async with aiofiles.open('LongestShape.txt', 'w') as f:
+        await f.write(str(longestShape.get('points')))
+
+    stop, stopp = await loop.run_in_executor(executor, functools.partial(displayPlots, readImage,grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj, allShapesImage, longestShapeImage))
 
     # Program runtime
-    # EXECUTION: 2.92s
-    # PROCESS: 1.00s
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 
@@ -97,7 +117,6 @@ async def exercise1a_thresholding(filename, usedFilter):
 
 
 if __name__ == "__main__":
-    # Set logging level and create a ProcessPoolExecutor to run asyncio loop on
     logging.basicConfig(level = logging.INFO)
     executor = ProcessPoolExecutor(1)
 
@@ -111,4 +130,4 @@ if __name__ == "__main__":
 
     # Get asyncio loop and start function
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(exercise1a_thresholding(filename, usedFilter))
+    loop.run_until_complete(exercise1b_shaping(filename, usedFilter))
