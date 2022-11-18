@@ -179,25 +179,31 @@ class Searcher():
 
     def getLongestShape(self):
         """Returns the longest shape from the found shapes, which usualy is the biggest object on the image"""
+        max = 0
         maxIndex = 0
-        i = 0
-        
-        for shape in self.shapes:
-            if len(shape.get('points')) > len(self.shapes[maxIndex].get('points')):
+        for i in range(len(self.shapes)):
+            if(len(self.shapes[i]["codes"]) > max):
+                max = len(self.shapes[i]["codes"])
                 maxIndex = i
-            i = i + 1
         
         return self.shapes[maxIndex]
 
     def drawAllShapes(self, grayScaleInterval):
         """Returns an image with all shapes drawn. Every shape has a different gray value on the final picture"""
-        shapeImage = np.zeros_like(self.inputImage)
-        i = 0
+        shapeImage = np.zeros_like(self.inputImage, 'uint8')
+        
+        # Add key pointsNum to set it to the number of points in a shape
+        for i in range(len(self.shapes)):
+            self.shapes[i]['pointsNum'] = len(self.shapes[i]['points'])
 
+        # Sort shapes by its length from longest to shortest
+        self.shapes = sorted(self.shapes, key = lambda d: d["pointsNum"]) 
+
+        colorCounter = 0
         for shape in self.shapes:
-            # Grayscale value range on interval [51, 204]
-            grayColor = round( i * (grayScaleInterval[1] - grayScaleInterval[0])/len(self.shapes) + grayScaleInterval[0] )
-            i = i + 1
+            # Grayscale value range on interval [startColor, stopColor] / linear transformation of inputed interval
+            grayColor = round( colorCounter * (grayScaleInterval[1] - grayScaleInterval[0])/len(self.shapes) + grayScaleInterval[0] )
+            colorCounter = colorCounter + 1
             for point in shape.get('points'):
                 shapeImage[point[1]][point[0]] = grayColor 
 
