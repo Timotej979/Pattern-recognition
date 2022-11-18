@@ -64,7 +64,7 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
     plt.title("Image with the longest shape")
     plt.imshow(longestShapeImage, cmap = 'gray')
 
-    # Program execution time
+    # Program runtime
     stop = time.time()
     stopp = time.process_time()
     plt.show()

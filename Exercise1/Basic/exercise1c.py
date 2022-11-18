@@ -6,6 +6,10 @@ from features import *
 
 
 def exercise1c_features():
+    # Program runtime
+    start = time.time()
+    startp = time.process_time()
+
     # Read all images from Pictures/ directory preprocess them and save them to a list
     directory = 'Pictures/'
     try:
@@ -35,7 +39,6 @@ def exercise1c_features():
         plt.bar(x, logShow, width=0.1, color=color)
 
     plt.grid(True)
-    plt.show()
 
     # Pick the best features for spliting appart different object classes
     X = np.array(vectorsFFC)
@@ -60,7 +63,6 @@ def exercise1c_features():
     plt.imshow(distancesEVK)
     plt.colorbar()
     plt.tight_layout()
-    plt.show()
 
     plt.figure()
     plt.title("Cosine similarity")
@@ -68,6 +70,12 @@ def exercise1c_features():
     plt.colorbar()
     plt.tight_layout()
     plt.show()
+
+     # Program runtime
+    stop = time.time()
+    stopp = time.process_time()
+    logging.info("Program execution time: {} seconds".format(stop - start))
+    logging.info("Program process time: {} seconds".format(stopp - startp))
     
 
 if __name__ == "__main__":

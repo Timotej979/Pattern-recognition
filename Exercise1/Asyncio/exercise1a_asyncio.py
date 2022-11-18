@@ -55,7 +55,7 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
     plt.title("Thresholded image")
     plt.imshow(thresholdedImage, cmap = "gray")
 
-    # Program execution time
+    # Program runtime
     stop = time.time()
     stopp = time.process_time()
     plt.show()
@@ -86,8 +86,6 @@ async def exercise1a_thresholding(filename, usedFilter):
     stop, stopp = await loop.run_in_executor(executor, functools.partial(displayPlots, readImage,grayScaleImage, processedImage, thresholdedImage, ImageProcessingObj))
 
     # Program runtime
-    # EXECUTION: 2.92s
-    # PROCESS: 1.00s
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 

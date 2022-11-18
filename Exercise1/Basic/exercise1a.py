@@ -64,8 +64,6 @@ def exercise1A_thresholding():
     plt.imshow(thresholdedImage, cmap = "gray")
 
     # Program runtime
-    # EXECUTION: 1.44s
-    # PROCESS: 1.39s
     stop = time.time()
     stopp = time.process_time()
     logging.info("Program execution time: {} seconds".format(stop - start))

@@ -83,11 +83,9 @@ async def exercise1c_features():
     plt.tight_layout()
     plt.show()
 
-    # Program execution time
+    # Program runtime
     stop = time.time()
     stopp = time.process_time()
-
-    # Program runtime
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 
