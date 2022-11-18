@@ -202,6 +202,7 @@ class Searcher():
         colorCounter = 0
         for shape in self.shapes:
             # Grayscale value range on interval [startColor, stopColor] / linear transformation of inputed interval
+            # Color intensity decreases with shorter length of a shape
             grayColor = round( colorCounter * (grayScaleInterval[1] - grayScaleInterval[0])/len(self.shapes) + grayScaleInterval[0] )
             colorCounter = colorCounter + 1
             for point in shape.get('points'):
