@@ -47,12 +47,10 @@ class Thresholding:
         for t in range(1, 254):
             normalizedP = np.sum(P[:t])
             
-            firstFactor = P[:t+1]/normalizedP
-            firstFactor[(firstFactor == 0) | (np.isnan(firstFactor))] = 1
+            firstFactor = np.divide(P[:t+1], normalizedP, out = np.ones_like(P[:t+1]), where = ((P[:t+1] != 0) & (normalizedP != 0)))
             H0 = - np.sum( np.dot( firstFactor, np.log2(firstFactor) ) )
 
-            secondFactor = P[t+1:]/(1-normalizedP)
-            secondFactor[(secondFactor == 0) | (np.isnan(secondFactor))] = 1
+            secondFactor = np.divide(P[t+1:], (1 - normalizedP), out = np.ones_like(P[t+1:]), where = ((P[t+1:] != 0) & ((1 - normalizedP) != 0)))
             H1 = - np.sum( np.dot( secondFactor, np.log2(secondFactor) ) )
 
             information[t] = H0 + H1
