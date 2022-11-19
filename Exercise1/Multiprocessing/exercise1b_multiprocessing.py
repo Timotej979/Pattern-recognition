@@ -3,6 +3,7 @@ import cv2, sys, logging, time, glob
 import multiprocessing as mp
 
 from thresholding_multiprocessing import Thresholding
+from shapes_multiprocessing import Searcher
 
 
 """SUPPORT FUNCTIONS"""
@@ -34,6 +35,17 @@ def objAndPlot(processedImage, rgbImage, grayScaleImage):
     ImageProcessingObj = Thresholding(processedImage[1])
     ImageProcessingObj.calculateHistogram()
     ImageProcessingObj.drawHistogram(processedImage[0])
+    ImageProcessingObj.setThreshold()
+
+    logging.info("Selected image " + processedImage[0] + " threshold is: {}".format(ImageProcessingObj.imageThreshold))
+    _, thresholdedImage = cv2.threshold(processedImage[1], ImageProcessingObj.imageThreshold, 255, 0)
+
+    ImageSearcherObj = Searcher(thresholdedImage)
+    ImageSearcherObj.searchShapes()
+
+    longestShape = ImageSearcherObj.getLongestShape()
+    with open('LongestShape-' + processedImage[0] + '.txt', 'w') as f:
+        f.write(str(longestShape.get('points')))
 
     plt.figure()
     plt.title("RGB image " + processedImage[0])
@@ -47,28 +59,31 @@ def objAndPlot(processedImage, rgbImage, grayScaleImage):
     plt.title("Processed image " + processedImage[0])
     plt.imshow(processedImage[1], cmap = "gray")
 
-    # Set image threshold
-    ImageProcessingObj.setThreshold()
-    logging.info("Selected image " + processedImage[0] + " threshold is: {}".format(ImageProcessingObj.imageThreshold))
-    _, thresholdedImage = cv2.threshold(processedImage[1], ImageProcessingObj.imageThreshold, 255, 0)
-
     plt.figure()
     plt.title("Thresholded image " + processedImage[0])
     plt.imshow(thresholdedImage, cmap = "gray")
+
+    plt.figure()
+    plt.title("Image with all shapes " + processedImage[0])
+    plt.imshow(ImageSearcherObj.drawAllShapes([80, 255]), cmap = "gray")
+
+    plt.figure()
+    plt.title("Image with the longest shape " + processedImage[0])
+    plt.imshow(ImageSearcherObj.drawShape(longestShape, 255), cmap = 'gray')
 
     plt.show()
 
 
 """MAIN FUNCTION"""
-def exercise1A_thresholding():
+def exercise1b_shaping():
     # Program runtime
     start = time.time()
     startp = time.process_time()
 
     # Get current directory jpg images
     imageNames = glob.glob("*.jpg")
-    
-    # Start one multiprocessing context manager and do everything within it
+
+     # Start one multiprocessing context manager and do everything within it
     with mp.Manager() as multimanager:
 
         # Global mp manager dictionaries to keep track of files
@@ -108,12 +123,11 @@ def exercise1A_thresholding():
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
 
-    input("Press any key to exit the program")
+    input("Press any key.")
     plt.close("all")
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    # Set logging level and start main function
     logging.basicConfig(level = logging.INFO)
-    exercise1A_thresholding()
+    exercise1b_shaping()

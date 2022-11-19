@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-class DigitalImageProcessing:
+class Thresholding:
 
     def __init__(self, grayScaleImage):
         self.grayScaleImage = grayScaleImage
@@ -16,12 +16,12 @@ class DigitalImageProcessing:
             histogram[gray_threshold] = pixel_num
         self.imageHistogram = histogram
 
-    def drawHistogram(self):
+    def drawHistogram(self, imageName):
         """Draws calculated histogram.
         @param histogram : 1D numpy array of variable size and type"""
         element_num = self.imageHistogram.shape[0]
         plt.figure()
-        plt.title("Histogram")
+        plt.title("Histogram " + imageName)
         plt.bar(np.arange(element_num), self.imageHistogram)
         plt.xlabel("Luminosity")
         plt.ylabel("Number of pixels")
@@ -47,12 +47,10 @@ class DigitalImageProcessing:
         for t in range(1, 254):
             normalizedP = np.sum(P[:t])
             
-            firstFactor = P[:t+1]/normalizedP
-            firstFactor[(firstFactor == 0) | (np.isnan(firstFactor))] = 1
+            firstFactor = np.divide(P[:t+1], normalizedP, out = np.ones_like(P[:t+1]), where = ((P[:t+1] != 0) & (normalizedP != 0)))
             H0 = - np.sum( np.dot( firstFactor, np.log2(firstFactor) ) )
 
-            secondFactor = P[t+1:]/(1-normalizedP)
-            secondFactor[(secondFactor == 0) | (np.isnan(secondFactor))] = 1
+            secondFactor = np.divide(P[t+1:], (1 - normalizedP), out = np.ones_like(P[t+1:]), where = ((P[t+1:] != 0) & ((1 - normalizedP) != 0)))
             H1 = - np.sum( np.dot( secondFactor, np.log2(secondFactor) ) )
 
             information[t] = H0 + H1
