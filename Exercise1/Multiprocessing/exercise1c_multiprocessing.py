@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import cv2, sys, logging, time, os, ctypes
+import cv2, logging, time, os
 import multiprocessing as mp
 
 from sklearn.feature_selection import SelectKBest
@@ -30,21 +30,22 @@ def plotVectorsFFC(i, vectorsFFCList, inputImages):
     plt.grid(True)
     plt.show()
 
-def calculateEuclideanCosine(j, k, X_new, mpDistancesEVKArray, mpCosineSimilaritiesArray):
-    # Synchronize array access
-    with mpDistancesEVKArray.get_lock():
-        with mpCosineSimilaritiesArray.get_lock():
-            # Get arrays from shared memory
-            distancesEVKArray = np.frombuffer(mpDistancesEVKArray.get_obj()).reshape((6, 6))
-            cosineSimilaritiesArray = np.frombuffer(mpCosineSimilaritiesArray.get_obj()).reshape((6, 6))
+def calculateEuclideanCosine(j, k, X_new, mpDistancesEVKArray, mpCosineSimilaritiesArray, mpLock):
+    # Set vectors v1 and v2
+    v1 = X_new[j]
+    v2 = X_new[k]
 
-            # Set vectors v1 and v2
-            v1 = X_new[j]
-            v2 = X_new[k]
-
-            # Calculate cosine similarity and negative euclidean distance between vectors v1 and v2
-            distancesEVKArray[j, k] = -np.linalg.norm(v1 - v2,2)
-            cosineSimilaritiesArray[j, k] = ((np.dot(v1,v2)))/(np.linalg.norm(v1,2)*np.linalg.norm(v2,2))
+    # Synchronize array access using acquire multiprocessing Lock() 
+    with mpLock:
+         # Get array from shared memory
+        distancesEVKArray = np.frombuffer(mpDistancesEVKArray.get_obj()).reshape((6, 6))
+        # Get array from shared memory
+        cosineSimilaritiesArray = np.frombuffer(mpCosineSimilaritiesArray.get_obj()).reshape((6, 6))
+        # Calculate negative euclidean distance between vectors v1 and v2
+        distancesEVKArray[j, k] = -np.linalg.norm(v1 - v2,2)
+        # Calculate cosine similarity between vectors v1 and v2
+        cosineSimilaritiesArray[j, k] = ((np.dot(v1,v2)))/(np.linalg.norm(v1,2)*np.linalg.norm(v2,2))
+        # Release multiprocesing Lock()
 
 def plotEuclideanCosine(mpDistancesEVKArray, mpCosineSimilaritiesArray):
     plt.figure()
@@ -79,15 +80,15 @@ def exercise1c_features():
         # Global mp manager dictionaries to keep track of files
         vectorsFFCList = multimanager.list()
 
-        # Shared memory 2D numpy array with reference to use in function
+        # Shared memory 2D numpy array
         mpDistancesEVKArray = mp.Array('d', 6*6)
-
         mpCosineSimilaritiesArray = mp.Array('d',6*6)
 
         # Calculate feature vector for every picture
         for inputImage in inputImages:
             calculateFFCListProcess = mp.Process(target = calculateVectorsFFCList, args = (directory, inputImage, vectorsFFCList, ))
             calculateFFCListProcess.start()
+
             
         calculateFFCListProcess.join()
 
@@ -96,14 +97,30 @@ def exercise1c_features():
         y = np.array([0, 0, 0, 1, 1, 1])
         X_new = SelectKBest(k=4).fit_transform(X, y)
 
+        # Create multiprocessing lock object and limit the number of processes runing simuntaneously 
+        # Limit is set to 3 because we have 3 hammer images and 3 wrench images,
+        # therefore when we calculate distances between eachother the 3x3 calculations are roughly the same in time complexity (Prevents race condition)
+        mpLock = mp.Lock()
+        processesList = []
+        maxNumOfProcesses = 3
+
         # Calculate euclidean distance and cosine similarity
         for j in range(len(vectorsFFCList)):
             for k in range(len(vectorsFFCList)):
-                calculateEuclideanCosineProcess = mp.Process(target = calculateEuclideanCosine, args = (j, k, X_new, mpDistancesEVKArray, mpCosineSimilaritiesArray, ))
-                calculateEuclideanCosineProcess.start()
-
-        calculateEuclideanCosineProcess.join()
-
+                # Maximum num of processes set, after reach we join them
+                if(len(processesList) <= maxNumOfProcesses):
+                    calculateEuclideanCosineProcess = mp.Process(target = calculateEuclideanCosine, args = (j, k, X_new, mpDistancesEVKArray, mpCosineSimilaritiesArray, mpLock, ))
+                    calculateEuclideanCosineProcess.start()
+                    processesList.append(calculateEuclideanCosineProcess)
+                else:
+                    for process in processesList:
+                        process.join()
+                    # After the join of 6 processes, clear processesList and continue
+                    processesList.clear()
+                    calculateEuclideanCosineProcess = mp.Process(target = calculateEuclideanCosine, args = (j, k, X_new, mpDistancesEVKArray, mpCosineSimilaritiesArray, mpLock, ))
+                    calculateEuclideanCosineProcess.start()
+                    processesList.append(calculateEuclideanCosineProcess)
+                    
         # Plot feature vector for every picture on a sepparate graph
         for i in range(len(vectorsFFCList)):
             plotVectorsFFCProcess = mp.Process(target = plotVectorsFFC, args = (i, vectorsFFCList, inputImages, ))

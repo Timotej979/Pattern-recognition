@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import cv2, os, logging, asyncio, aiofiles, functools, time
+import cv2, os, logging, asyncio, functools, time
 from concurrent.futures import ProcessPoolExecutor
 
 from sklearn.feature_selection import SelectKBest
