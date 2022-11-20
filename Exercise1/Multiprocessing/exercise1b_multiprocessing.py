@@ -83,7 +83,7 @@ def exercise1b_shaping():
     # Get current directory jpg images
     imageNames = glob.glob("*.jpg")
 
-     # Start one multiprocessing context manager and do everything within it
+    # Start one multiprocessing context manager and do everything within it
     with mp.Manager() as multimanager:
 
         # Global mp manager dictionaries to keep track of files

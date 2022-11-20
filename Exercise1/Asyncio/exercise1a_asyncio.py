@@ -5,7 +5,7 @@ from concurrent.futures import ProcessPoolExecutor
 from thresholding_asyncio import Thresholding
 
 
-"""SUPPORT FUNCTIONS"""
+"""SUPPORT FUNCTIONS:"""
 def loadImage(filename):
     readImage = cv2.imread(filename)
     readImage = cv2.cvtColor(readImage, cv2.COLOR_BGR2RGB)
@@ -62,7 +62,7 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
     return stop, stopp
 
 
-"""MAIN ASYNC FUNCTION"""
+"""MAIN ASYNC FUNCTION:"""
 async def exercise1a_thresholding(filename, usedFilter):
     # Program runtime
     start = time.time()

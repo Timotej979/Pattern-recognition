@@ -88,8 +88,7 @@ def exercise1c_features():
         for inputImage in inputImages:
             calculateFFCListProcess = mp.Process(target = calculateVectorsFFCList, args = (directory, inputImage, vectorsFFCList, ))
             calculateFFCListProcess.start()
-
-            
+   
         calculateFFCListProcess.join()
 
     	# Pick the best features for spliting appart different object classes
@@ -100,6 +99,7 @@ def exercise1c_features():
         # Create multiprocessing lock object and limit the number of processes runing simuntaneously 
         # Limit is set to 3 because we have 3 hammer images and 3 wrench images,
         # therefore when we calculate distances between eachother the 3x3 calculations are roughly the same in time complexity (Prevents race condition)
+        # P.S. Could be optimized for 3x3 squares, therefore max number of 9 processes runing simuntaneously
         mpLock = mp.Lock()
         processesList = []
         maxNumOfProcesses = 3

@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import cv2, sys, logging, time, os
+import cv2, logging, time, os
 
 from sklearn.feature_selection import SelectKBest
 from features import *
@@ -38,6 +38,7 @@ def exercise1c_features():
         logShow = np.sign(modifiedVector) * np.log10(np.abs(modifiedVector))
         plt.bar(x, logShow, width=0.1, color=color)
 
+    plt.title("FFC")
     plt.grid(True)
 
     # Pick the best features for spliting appart different object classes
@@ -69,15 +70,16 @@ def exercise1c_features():
     plt.imshow(cosineSimilarities)
     plt.colorbar()
     plt.tight_layout()
-    plt.show()
 
-     # Program runtime
+    # Program runtime
     stop = time.time()
     stopp = time.process_time()
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
-    
 
+    plt.show()
+
+    
 if __name__ == "__main__":
     logging.basicConfig(level = logging.INFO)
     exercise1c_features()

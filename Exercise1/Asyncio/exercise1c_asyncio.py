@@ -6,7 +6,7 @@ from sklearn.feature_selection import SelectKBest
 from features_asyncio import *
 
 
-"""SUPPORT FUNCTION"""
+"""SUPPORT FUNCTION:"""
 def listDirFiles(directory):
     """Read all images from Pictures/ directory preprocess them and save them to a list"""
     try:
@@ -16,7 +16,7 @@ def listDirFiles(directory):
         logging.error("Error reading directory /Pictures/")
 
 
-"""MAIN ASYNC FUNCTION"""
+"""MAIN ASYNC FUNCTION:"""
 async def exercise1c_features():
     # Program runtime
     start = time.time()
@@ -33,9 +33,6 @@ async def exercise1c_features():
         vectorsFFC.append(vectorFFC)
 
     # Calculate feature vectors
-    logX = []
-    logShow = []
-    logColor = []
     for i in range(len(vectorsFFC)):
         if i < 3:
             color = "b"
@@ -50,6 +47,7 @@ async def exercise1c_features():
         logShow = np.sign(modifiedVector) * np.log10(np.abs(modifiedVector))
         plt.bar(x, logShow, width=0.1, color=color)
 
+    plt.title("FFC")
     plt.grid(True)
 
     # Pick the best features for spliting appart different object classes
@@ -81,13 +79,14 @@ async def exercise1c_features():
     plt.imshow(cosineSimilarities)
     plt.colorbar()
     plt.tight_layout()
-    plt.show()
 
     # Program runtime
     stop = time.time()
     stopp = time.process_time()
     logging.info("Program execution time: {} seconds".format(stop - start))
     logging.info("Program process time: {} seconds".format(stopp - startp))
+
+    plt.show()
 
 
 if __name__ == "__main__":

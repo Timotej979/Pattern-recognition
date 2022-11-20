@@ -6,7 +6,7 @@ from thresholding_asyncio import Thresholding
 from shapes_asyncio import Searcher
 
 
-"""SUPPORT FUNCTIONS"""
+"""SUPPORT FUNCTIONS:"""
 def loadImage(filename):
     readImage = cv2.imread(filename)
     readImage = cv2.cvtColor(readImage, cv2.COLOR_BGR2RGB)
@@ -71,7 +71,7 @@ def displayPlots(readImage, grayScaleImage, processedImage, thresholdedImage, Im
     return stop, stopp
 
 
-"""MAIN ASYNC FUNCTION"""
+"""MAIN ASYNC FUNCTION:"""
 async def exercise1b_shaping(filename, usedFilter):
     # Program runtime
     start = time.time()
