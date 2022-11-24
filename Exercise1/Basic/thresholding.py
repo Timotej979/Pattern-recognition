@@ -44,8 +44,8 @@ class Thresholding:
 
         # Calculate information at every possible value of threshold
         # Set threshold value which maximizes information
-        for t in range(1, 254):
-            normalizedP = np.sum(P[:t])
+        for t in range(1, 255):
+            normalizedP = np.sum(P[:t+1])
             
             firstFactor = np.divide(P[:t+1], normalizedP, out = np.ones_like(P[:t+1]), where = ((P[:t+1] != 0) & (normalizedP != 0)))
             H0 = - np.sum( np.dot( firstFactor, np.log2(firstFactor) ) )
