@@ -1,0 +1,105 @@
+version: "3.9"
+
+services:
+  
+  api:
+    image: "recognition-api:v1"
+    restart: unless-stopped
+
+    command: sh -c "poetry run python /api/recognition_api.py"
+
+    # Debug tty connection
+    #stdin_open: true
+    #tty: true
+
+    build:
+      context: ./Backend
+
+    depends_on:
+      db: 
+        condition: service_started
+
+    networks:
+      - backend
+
+    environment:
+      - API_DB_CONNECTION_STRING=postgresql+asyncpg://${APP_DB_USERNAME}:${APP_DB_PASSWORD}@db:5432/${APP_DB_DBNAME}
+      - APP_CONFIG=${APP_CONFIG}
+      - API_DB_MAX_CONNECTIONS=${API_DB_MAX_CONNECTIONS}
+      - API_DB_POOL_RECYCLE=${API_DB_POOL_RECYCLE}
+      - API_DB_MAX_OVERFLOW=${API_DB_MAX_OVERFLOW}
+      - API_DB_POOL_TIMEOUT=${API_DB_POOL_TIMEOUT}
+      - API_URL_PREFIX=${API_URL_PREFIX}
+
+  db:
+    image: postgres
+    restart: unless-stopped
+
+    # Debug tty connection
+    #stdin_open: true
+    #tty: true
+    
+    networks:
+      - backend
+
+    environment:
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD} 
+      - POSTGRES_USER=${APP_DB_USERNAME}
+      - POSTGRES_DB=${APP_DB_DBNAME} 
+
+    ports:
+      - ${APP_DB_OUT_PORT}:5432
+
+    volumes:
+      - ./db/evt-data:/var/lib/postgresql/data/
+
+
+  #web:
+  #  image: "webpage:v1"
+  #  restart: unless-stopped
+
+  #  command: sh -c "poetry run python /Frontend/webserver.py"
+
+    # Debug tty connection
+    #stdin_open: true
+    #tty: true
+
+  #  build:
+  #    context: ./Frontend
+
+  #  depends_on:
+  #    db:
+  #      condition: service_started
+  #    api:
+  #      condition: service_started
+
+  #  environment:
+  #    - APP_POETRY_VERSION=${APP_POETRY_VERSION}
+
+
+  #nginx:
+  #  image: "recognition-api:nginx"
+  #  restart: unless-stopped
+
+  #  command: sh -c "nginx -g 'daemon off;'"
+
+  #  build: ./nginx
+
+  #  ports:
+  #    - ${API_OUT_PORT}:8000
+
+  #  depends_on:
+  #    db: 
+  #      condition: service_started
+  #    api:
+  #      condition: service_started
+  #    web:
+  #      condition: service_started
+
+
+# Create two network bridges for frontend and backend
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge

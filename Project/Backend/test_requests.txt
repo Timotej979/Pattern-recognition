@@ -1,0 +1,14 @@
+DB CONNECTION:
+    psql postgres://admin:FeatureRecognition@db:5432/FeaturesDatabase
+    psql postgres://admin:FeatureRecognition@127.0.0.1:6666/FeaturesDatabase
+
+
+TEST REQUESTS:
+
+    HEALTHCHECK:
+    curl http://127.0.0.1:5000/recognition-api/v1/healthz
+
+    POST UPLOAD FEATURES:
+    curl --request POST --header "Content-Type: application/json" --data '{"FeatureSet": "iris", "Features": ["5.1,3.5,1.4,0.2,Iris-setosa", "7.0,3.2,4.7,1.4,Iris-versicolor", "5.0,3.5,1.6,0.6,Iris-setosa", "4.3,3.0,1.1,0.1,Iris-setosa"]}' http://127.0.0.1:5000/recognition-api/v1/uploadFeatureSet 
+
+
