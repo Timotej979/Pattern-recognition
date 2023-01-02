@@ -59,13 +59,12 @@ class API_Server():
                         return web.json_response({"status": 200, "messsage": "POST upload feature set successful"}) 
                     else:
                         return web.json_response({"status": 404, "message": "Requested upload feature set already exists"})
-
                 except:
                     logging.exception("!! POST upload features error: Writing to DB error !!\n")
                     raise web.HTTPInternalServerError(body = "!! POST upload features error: Writing to DB error !!\n")
 
     # Delete feature set
-    @routes.delete('deleteFeatureSet')
+    @routes.delete('/deleteFeatureSet')
     async def delete_feature_set(request):
         log.info("## DELETE feature set ##")
 
@@ -87,8 +86,30 @@ class API_Server():
                     else:
                         return web.json_response({"status": 404, "message": "Requested delete feature set already deleted"})
                 except:
-                    logging.exception("!! DELETE feature set error: Writing to DB error !!\n")
+                    log.exception("!! DELETE feature set error: Writing to DB error !!\n")
                     raise web.HTTPInternalServerError(body = "!! DELETE feature set error: Writing to DB error !!\n")
+
+    # Get list of all feature sets in DB
+    @routes.get('/getListOfFeatureSets')
+    async def get_list_of_feature_sets(request):
+        log.info('## GET list of feature sets ##')
+        
+        try:
+            session = ahsa.get_session(request)
+        except:
+            log.exception("!! GET list of feature sets error: Couldn't get SQLAlchemy ORM session !!\n")
+            raise web.HTTPServiceUnavailable("!! GET list of feature sets error: Couldn't get SQLAlchemy ORM session !!\n")
+        else:
+            try:
+                listOfFeatureSetsJSON = await Recognition_DAL.get_list_of_all_feature_sets(session)
+
+                if listOfFeatureSetsJSON != False:
+                    return web.json_response({"status": 200, "message": listOfFeatureSetsJSON})
+                else:
+                    return web.json_response({"status": 404, "message": "No feature sets found"})
+            except:
+                log.exception("!! GET list of feature sets error: Reading from DB error !!\n")
+                raise web.HTTPInternalServerError(body = "!! GET list of feature sets error: Reading from DB error !!\n")
 
 
     ############################################################################################################################################

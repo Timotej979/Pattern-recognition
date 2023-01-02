@@ -43,6 +43,7 @@ class Recognition_DAL():
     async def delete_feature_set(session, json_data):
         async with session.begin():
             logging.info("## Session connected ##")
+            logging.info("    - " + str(json_data.get("FeatureSet")))
 
             deleteFeatureSetCheck = await session.execute(select(Feature_set).where(Feature_set.name == json_data.get("FeatureSet")).exists().select())
 
@@ -52,6 +53,21 @@ class Recognition_DAL():
             else:
                 logging.error("!! DELETE feature set error: Inserted feature set {} doesn't exist !!\n".format(str(json_data.get("FeatureSet"))))
                 return False
+
+    # GET list of all feature sets
+    async def get_list_of_all_feature_sets(session):
+        async with session.begin():
+            logging.info("## Session connected ##")
+
+            listOfFeatureSets = await session.execute(select(Feature_set.name))
+            
+            if listOfFeatureSets != None:
+                listOfFeatureSetsJSON = {"FeatureSets": [element[0] for element in tuple(listOfFeatureSets.fetchall())]}
+                return listOfFeatureSetsJSON
+            else:
+                logging.error("!! No feature sets found in DB !!\n")
+                return False
+
 
 
 
