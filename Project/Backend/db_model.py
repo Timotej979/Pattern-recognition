@@ -22,8 +22,8 @@ class Feature_set(Base):
 class Features(Base):
     __tablename__ = 'Features_table'
 
-    ID = Column(Integer, primary_key = True, unique = True, autoincrement = True)
-    feature = Column(String(10000), unique = True)
+    ID = Column(Integer, primary_key = True, autoincrement = True)
+    feature = Column(String(10000))
 
     parent_id = Column(Integer, ForeignKey('Feature_set_table.ID', ondelete='CASCADE'))
     parent = relationship('Feature_set', backref = backref('Features_table', cascade = 'all, delete', overlaps="Feature_set_table,feature_children"), overlaps="Feature_set_table,feature_children")

@@ -112,6 +112,36 @@ class API_Server():
                 raise web.HTTPInternalServerError(body = "!! GET list of feature sets error: Reading from DB error !!\n")
 
 
+    ################################# RECOGNITION METHODS #################################
+    # Get exercise 1
+    @routes.get('/principalComponentAnalysis')
+    async def exercise1(request):
+        log.info('## GET PCA ##')
+
+        try:
+            featureSetJSON = await request.json()
+        except:
+            log.exception("!! GET PCA error: Couldn't fetch requested data !!\n")
+            raise web.HTTPBadRequest("!! GET PCA error: Couldn't fetch requested data !!\n")
+        else:
+            try:
+                session = ahsa.get_session(request)
+            except:
+                log.exception("!! GET PCA error: Couldn't get SQLAlchemy ORM session !!\n")
+                raise web.HTTPServiceUnavailable("!! GET PCA error: Couldn't get SQLAlchemy ORM session !!\n")
+            else:
+                try:
+                    resultJSON = await Recognition_DAL.exercise1(session, featureSetJSON)
+
+                    if resultJSON == False:
+                        return web.json_response({"status": 404, "message": "No feature set found"})
+                    else:
+                        return web.json_response({"status": 200, "message": resultJSON})
+                except:
+                    log.exception("!! GET PCA error: Reading from DB error !!\n")
+                    raise web.HTTPInternalServerError(body = "!! GET PCA error: Reading from DB error !!\n")
+
+
     ############################################################################################################################################
     # Initialization for API app object
     async def initialize(self):
