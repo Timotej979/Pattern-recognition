@@ -53,53 +53,27 @@ services:
     volumes:
       - ./db/evt-data:/var/lib/postgresql/data/
 
+  nginx:
+    image: "recognition-api:nginx"
+    restart: unless-stopped
 
-  #web:
-  #  image: "webpage:v1"
-  #  restart: unless-stopped
+    command: sh -c "nginx -g 'daemon off;'"
 
-  #  command: sh -c "poetry run python /Frontend/webserver.py"
+    build: ./nginx
 
-    # Debug tty connection
-    #stdin_open: true
-    #tty: true
+    networks:
+      - backend
 
-  #  build:
-  #    context: ./Frontend
+    ports:
+      - 5000:8000
 
-  #  depends_on:
-  #    db:
-  #      condition: service_started
-  #    api:
-  #      condition: service_started
-
-  #  environment:
-  #    - APP_POETRY_VERSION=${APP_POETRY_VERSION}
-
-
-  #nginx:
-  #  image: "recognition-api:nginx"
-  #  restart: unless-stopped
-
-  #  command: sh -c "nginx -g 'daemon off;'"
-
-  #  build: ./nginx
-
-  #  ports:
-  #    - ${API_OUT_PORT}:8000
-
-  #  depends_on:
-  #    db: 
-  #      condition: service_started
-  #    api:
-  #      condition: service_started
-  #    web:
-  #      condition: service_started
-
+    depends_on:
+      db: 
+        condition: service_started
+      api:
+        condition: service_started
 
 # Create two network bridges for frontend and backend
 networks:
   backend:
-    driver: bridge
-  frontend:
     driver: bridge

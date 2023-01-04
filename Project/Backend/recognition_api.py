@@ -40,7 +40,7 @@ class API_Server():
     # Upload feature set
     @routes.post('/uploadFeatureSet')
     async def upload_feature_set(request):
-        log.info("## POST upload feature set ##\n")
+        log.info("## POST upload feature set ##")
 
         try:
             postUploadedFeatureSetJSON = await request.json()
@@ -113,9 +113,9 @@ class API_Server():
 
 
     ################################# RECOGNITION METHODS #################################
-    # Get exercise 1
+    # Get PCA
     @routes.get('/principalComponentAnalysis')
-    async def exercise1(request):
+    async def PCA(request):
         log.info('## GET PCA ##')
 
         try:
@@ -131,7 +131,7 @@ class API_Server():
                 raise web.HTTPServiceUnavailable("!! GET PCA error: Couldn't get SQLAlchemy ORM session !!\n")
             else:
                 try:
-                    resultJSON = await Recognition_DAL.exercise1(session, featureSetJSON)
+                    resultJSON = await Recognition_DAL.principalComponentAnalysis(session, featureSetJSON)
 
                     if resultJSON == False:
                         return web.json_response({"status": 404, "message": "No feature set found"})
@@ -140,6 +140,35 @@ class API_Server():
                 except:
                     log.exception("!! GET PCA error: Reading from DB error !!\n")
                     raise web.HTTPInternalServerError(body = "!! GET PCA error: Reading from DB error !!\n")
+
+    # Get optimized PCA
+    @routes.get('/optimizedPrincipalComponentAnalysis')
+    async def optimizedPCA(request):
+        log.info('## GET optimized PCA ##')
+
+        try:
+            featureSetJSON = await request.json()
+        except:
+            log.info("!! Get optimized PCA error: Couldn't fetch requested data !!\n")
+            raise web.HTTPBadRequest("!! Get optimized PCA error: Couldn't fetch requested data !!\n")
+        else:
+            try:
+                session = ahsa.get_session(request)
+            except:
+                log.exception("!! GET optimized PCA error: Couldn't get SQLAlchemy ORM session !!\n")
+                raise web.HTTPServiceUnavailable("!! GET optimized PCA error: Couldn't get SQLAlchemy ORM session !!\n")
+            else:
+                try:
+                    resultJSON = await Recognition_DAL.optimizedPrincipalComponentAnalysis(session, featureSetJSON)
+
+                    if resultJSON == False:
+                        return web.json_response({"status": 404, "message": "No feature set found"})
+                    else:
+                        log.info(resultJSON)
+                        return web.json_response({"status": 200, "message": resultJSON})
+                except:
+                    log.exception("!! GET optimized PCA error: Reading from DB error !!\n")
+                    raise web.HTTPInternalServerError("!! GET optimized PCA error: Reading from DB error !!\n")   
 
 
     ############################################################################################################################################
