@@ -164,7 +164,6 @@ class API_Server():
                     if resultJSON == False:
                         return web.json_response({"status": 404, "message": "No feature set found"})
                     else:
-                        log.info(resultJSON)
                         return web.json_response({"status": 200, "message": resultJSON})
                 except:
                     log.exception("!! GET optimized PCA error: Reading from DB error !!\n")
