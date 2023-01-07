@@ -9,6 +9,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import pairwise_distances
 
 
 class Recognition_DAL():
@@ -102,18 +104,15 @@ class Recognition_DAL():
 
         # Pricipal Component Analysis
         numpyFeaturesList = np.array(listOfFeatures)
-
         sc = StandardScaler()
         X_normalised = sc.fit_transform(numpyFeaturesList)
 
         pca = PCA(n_components = json_data.get("NumOfComponents"))
         X_pca = pca.fit_transform(X_normalised)
-
         explained_variance = pca.explained_variance_ratio_
         logging.info("## Explained variance for {} components: {} ##".format(json_data.get("NumOfComponents"), explained_variance))
 
         knn = KNeighborsClassifier(n_neighbors = 1)
-
         scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
         scores_pca = cross_val_score(knn, X_pca, listOfFeatureNames)
 
@@ -144,7 +143,6 @@ class Recognition_DAL():
 
         # Parser for features with strings in them
         listOfFeatureNames = []
-
         for i in range(len(listOfFeatures)):
             for j in range(len(listOfFeatures[i])):
                 try:
@@ -155,7 +153,6 @@ class Recognition_DAL():
 
         # Pricipal Component Analysis
         numpyFeaturesList = np.array(listOfFeatures)
-
         sc = StandardScaler()
         X_normalised = sc.fit_transform(numpyFeaturesList)
 
@@ -168,13 +165,11 @@ class Recognition_DAL():
         # Execute PCA for optimal number of components for requested accuracy
         pca = PCA(n_components = optimalNumOfComponents)
         X_optimal_pca = pca.fit_transform(X_normalised)
-
         explained_variance = pca.explained_variance_
         logging.info("## Explained variance for {} components: {} ##".format(optimalNumOfComponents, explained_variance))
 
         # k-NN model definition and cross-corelation comparison score
         knn = KNeighborsClassifier(n_neighbors = 1)
-
         scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
         scores_pca = cross_val_score(knn, X_optimal_pca, listOfFeatureNames)
 
@@ -183,4 +178,53 @@ class Recognition_DAL():
 
         return {"FeatureSet": json_data.get("FeatureSet"), "OptimalNumOfComponents": int(optimalNumOfComponents), "X_optimal_pca": X_optimal_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
 
+    # GET hierarhical clustering
+    async def hierarhicalClustering(session, json_data):
+        async with session.begin():
+            logging.info("## Session connected ##")
+            logging.info("## Fetching features of dataset {} ##".format(json_data.get("FeatureSet")))
 
+            featureSetCheck = await session.execute(select(Feature_set).where(Feature_set.name == json_data.get("FeatureSet")).exists().select())
+
+            if featureSetCheck.fetchone()[0] is True:
+                featureSetID = await session.execute(select(Feature_set.ID).where(Feature_set.name == json_data.get("FeatureSet")))
+                listOfFeatures = await session.execute(select(Features.feature).where(Features.parent_id == featureSetID.fetchone()[0]))
+                listOfFeatures = [element[0] for element in tuple(listOfFeatures.fetchall())]
+            else:
+                logging.error("!! No feature set found in DB !!\n")
+                return False
+    
+        # Split features by comma and remove all whitespaces
+        for i in range(len(listOfFeatures)):
+            listOfFeatures[i] = [element.strip() for element in listOfFeatures[i].split(",")]
+
+        # Parser for features with strings in them
+        listOfFeatureNames = []
+        for i in range(len(listOfFeatures)):
+            for j in range(len(listOfFeatures[i])):
+                try:
+                    listOfFeatures[i][j] = float(listOfFeatures[i][j])
+                except ValueError:
+                    listOfFeatureNames.append(str(listOfFeatures[i][j]))
+                    listOfFeatures[i].pop()
+
+        # Hierarhical clustering using meassures: cityblock, euclidean and cosine
+        numpyFeaturesList = np.array(listOfFeatures)
+        distance_matrix = np.array([])
+
+        if json_data.get("Metric") == 'cosine':
+            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cosine')
+        elif json_data.get("Metric") == 'cityblock':
+            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cityblock')
+        elif json_data.get("Metric") == 'euclidean':
+            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='euclidean')
+        else:
+            logging.error("!! Metric attribute not found in JSON !!\n")
+
+        cluster = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average')
+
+        test = cluster.fit(distance_matrix)
+        
+        logging.info(test)
+
+        return {"FeatureSet": json_data.get("FeatureSet"), "Metric": json_data.get("Metric"), "DistanceMatrix": distance_matrix.tolist()}

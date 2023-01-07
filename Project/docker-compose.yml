@@ -47,11 +47,38 @@ services:
       - POSTGRES_USER=${APP_DB_USERNAME}
       - POSTGRES_DB=${APP_DB_DBNAME} 
 
+    # Comment out ports here if you do not want outside DB access
     ports:
       - ${APP_DB_OUT_PORT}:5432
 
     volumes:
       - ./db/evt-data:/var/lib/postgresql/data/
+
+  web:
+    image: "frontend:v1"
+    restart: unless-stopped
+
+    command: sh -c "poetry run python /frontend/webserver.py"
+
+    # Debug tty connection
+    #stdin_open: true
+    #tty: true
+
+    build:
+      context: ./Frontend
+
+    depends_on:
+      db:
+        condition: service_started
+      api:
+        condition: service_started
+
+    networks:
+      - frontend
+
+    environment:
+      - APP_CONFIG=${APP_CONFIG}
+      - WEB_URL_PREFIX=${WEB_URL_PREFIX}
 
   nginx:
     image: "recognition-api:nginx"
@@ -63,17 +90,22 @@ services:
 
     networks:
       - backend
+      - frontend
 
     ports:
-      - 5000:8000
+      - ${NGINX_OUT_PORT}:8000
 
     depends_on:
       db: 
         condition: service_started
       api:
         condition: service_started
+      web:
+        condition: service_started
 
 # Create two network bridges for frontend and backend
 networks:
   backend:
+    driver: bridge
+  frontend:
     driver: bridge
