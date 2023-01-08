@@ -26,7 +26,7 @@ class API_Server():
     API_Server class controls the behaviour of API server
     """
     
-    # Configure rotes table and all available methods
+    # Configure routes table and all available methods
     routes = web.RouteTableDef()
 
     # Healthcheck

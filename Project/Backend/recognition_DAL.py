@@ -1,4 +1,4 @@
-import logging, json, re
+import logging
 
 import numpy as np
 
@@ -119,7 +119,7 @@ class Recognition_DAL():
         logging.info("## Original score after 1-NN evaluation: {} ##".format(scores_original))
         logging.info("## PCA score after 1-NN evaluation: {} ##".format(scores_pca))
 
-        return {"FeatureSet": json_data.get("FeatureSet"), "X_original": X_normalised.tolist(), "X_pca": X_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
+        return {"FeatureSet": json_data.get("FeatureSet"), "X_pca": X_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
 
     # GET optimized PCA
     async def optimizedPrincipalComponentAnalysis(session, json_data):
