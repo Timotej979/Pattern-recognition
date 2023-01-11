@@ -1,12 +1,12 @@
-import logging, os, sys
+import logging, os, sys, json
 import asyncio
 
-from aiohttp import web
-
+from aiohttp import web, ClientSession
 
 # Get environment variables
 APP_CONFIG = os.getenv("APP_CONFIG")
 URL_PREFIX = os.getenv("WEB_URL_PREFIX")
+API_CONNECTION_STRING = os.getenv("API_CONNECTION_STRING")
 
 class WebService():
     """
@@ -25,6 +25,9 @@ class WebService():
     async def uploadData(request):
         log.info("## POST uploadData received ##")
 
+        # Get global variable from app object and write the whole response into it by every chunk
+        uploadChunkedList = request.app['uploadChunkedList']
+
         try:
             formDataChunk = await request.post()
         except:
@@ -36,12 +39,40 @@ class WebService():
             file = formDataChunk['file']
 
             if file.filename:
-                log.info(file.file.read())
-                # TODO
+                log.info("## Chunk number: {} ##".format(int(chunkIndex)))
+                uploadChunkedList.append(str(file.file.read()))
 
             if int(chunkIndex) == int(totalChunks) - 1:
-                log.info("Last chunk")
-                #log.info(file)
+                uploadChunkedList.append(str(file.file.read()))
+                log.info("## Last chunk: {} ##".format(int(chunkIndex)))
+                
+                # Upload data to database
+                uploadedChunkString = "".join(uploadChunkedList)
+                uploadChunkLines = uploadedChunkString.split("\\n")
+
+                uploadLinesList = []
+                for line in uploadChunkLines:
+                    if ("b" or "'b'" or '') not in line:
+                        uploadLinesList.append(line)
+
+                # Pop last element because it is always empty
+                uploadLinesList.pop()
+
+                # Create JSON for database upload request
+                uploadLinesJSONDict = {"FeatureSet": file.filename, "Features": uploadLinesList}
+                uploadLinesJSON = json.dumps(uploadLinesJSONDict)
+
+                log.info(API_CONNECTION_STRING)
+
+                # Make an async request to API
+                async with ClientSession() as session:
+                    async with session.post("http://127.0.0.1:5000/recognition-api/v1/uploadFeatureSet", json = uploadLinesJSON) as resp:
+                        if resp.status != 200:
+                            print(f'Error: {resp.status}')
+                            return web.HTTPBadRequest()
+                        else:
+                            response = await resp.json()
+                            log.info("## DB request response: {} ##".format(response))
 
             return web.HTTPOk()
 
@@ -58,6 +89,7 @@ class WebService():
         return web.Response(text = "Got hierarhical clustering page")
 
     ############################################################################################################################################
+    ############################################################################################################################################
     # Initialization for API app object
     async def initialize(self):
         log.info("API initialization started")
@@ -65,6 +97,9 @@ class WebService():
 
         log.info("Adding routes to application object")
         self.subapp.router.add_routes(self.routes)
+
+        # Add global upload chunk array to application object
+        self.subapp['uploadChunkedList'] = []
 
         # Add sub-app to set the IP/recognition-api request
         self.app = web.Application()
