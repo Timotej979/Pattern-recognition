@@ -7,6 +7,7 @@ from aiohttp import web, ClientSession
 APP_CONFIG = os.getenv("APP_CONFIG")
 URL_PREFIX = os.getenv("WEB_URL_PREFIX")
 API_CONNECTION_STRING = os.getenv("API_WEB_CONNECTION_STRING")
+API_MAX_CHUNK_SIZE = int(os.getenv("WEB_API_REQUEST_MAX_CHUNK_SIZE"))
 
 class WebService():
     """
@@ -39,6 +40,7 @@ class WebService():
                 chunkIndex = formDataChunk['chunkIndex']
                 totalChunks = formDataChunk['totalChunks']
                 file = formDataChunk['file']
+                fileName = str(formDataChunk['fileName'])
 
                 if file.filename:
                     log.info("## Chunk number: {} ##".format(int(chunkIndex)))
@@ -64,24 +66,60 @@ class WebService():
                         # Pop last element because it is always empty
                         uploadLinesList.pop()
 
-                        # Create JSON for database upload request
-                        uploadLinesJSONDict = {"FeatureSet": file.filename, "Features": uploadLinesList}
-                        uploadLinesJSON = json.dumps(uploadLinesJSONDict)
+                        # Determine wether we should single/chunk upload data to API
+                        if sys.getsizeof(uploadLinesList) > API_MAX_CHUNK_SIZE:
+                            log.info("## Initializing chunked upload to API ##")
 
-                        log.info(API_CONNECTION_STRING)
+                            # Determine how many chunks there should be using max size and modulus
+                            numberOfListSplits = sys.getsizeof(uploadLinesList) % API_MAX_CHUNK_SIZE
 
-                        # Make an async request to API
-                        async with ClientSession() as session:
-                            async with session.post(API_CONNECTION_STRING + "/uploadFeatureSet", json = uploadLinesJSON) as resp:
-                                if resp.status != 200:
-                                    print(f'Error: {resp.status}')
-                                    return web.HTTPBadRequest()
+                            for index in range(0, numberOfListSplits):
+                                if index == 0:
+                                    # Create JSON for database upload request
+                                    uploadLinesJSON = {"FeatureSet": fileName, "Features": uploadLinesList[index::numberOfListSplits]}
+
+                                    # Make an async request to API
+                                    async with ClientSession() as session:
+                                        async with session.post(API_CONNECTION_STRING + "/uploadFeatureSet", json = uploadLinesJSON, headers = {'Content-Type': 'application/json'}) as resp:
+                                            if resp.status != 200:
+                                                log.exception("!! POST upload data error: Failed chunk upload !!\n")
+                                                return web.HTTPBadRequest("!! POST upload data error: Failed chunk upload !!\n")
+                                            else:
+                                                response = await resp.json()
+                                                log.info("## DB request response: {} ##".format(response))
                                 else:
-                                    response = await resp.json()
-                                    log.info("## DB request response: {} ##".format(response))
+                                    # Create JSON for database upload request
+                                    uploadLinesJSON = {"FeatureSet": fileName, "Features": uploadLinesList[index::numberOfListSplits]}
+
+                                    # Make an async request to API
+                                    async with ClientSession() as session:
+                                        async with session.post(API_CONNECTION_STRING + "/extendFeatureSet", json = uploadLinesJSON, headers = {'Content-Type': 'application/json'}) as resp:
+                                            if resp.status != 200:
+                                                log.exception("!! POST upload data error: Failed chunk upload !!\n")
+                                                return web.HTTPBadRequest("!! POST upload data error: Failed chunk upload !!\n")
+                                            else:
+                                                response = await resp.json()
+                                                log.info("## DB request response: {} ##".format(response))                            
+                        else:
+                            log.info("## Initializing single upload to API ##")
+            
+                            # Create JSON for database upload request
+                            uploadLinesJSON = {"FeatureSet": fileName, "Features": uploadLinesList}
+
+                            log.info(API_CONNECTION_STRING)
+
+                            # Make an async request to API
+                            async with ClientSession() as session:
+                                async with session.post(API_CONNECTION_STRING + "/uploadFeatureSet", json = uploadLinesJSON, headers = {'Content-Type': 'application/json'}) as resp:
+                                    if resp.status != 200:
+                                        log.exception("!! POST upload data error: Failed single upload !!\n")
+                                        return web.HTTPBadRequest("!! POST upload data error: Failed single upload !!\n")
+                                    else:
+                                        response = await resp.json()
+                                        log.info("## DB request response: {} ##".format(response))
                 except:
                     log.exception("!! POST upload data error: Couldn't upload data to DB !!\n")
-                    return web.HTTPServerError()
+                    return web.HTTPServerError("!! POST upload data error: Couldn't upload data to DB !!\n")
                 else:
                     return web.HTTPOk()
 

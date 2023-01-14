@@ -80,6 +80,7 @@ services:
       - API_WEB_CONNECTION_STRING=http://nginx:8000/recognition-api/v1
       - APP_CONFIG=${APP_CONFIG}
       - WEB_URL_PREFIX=${WEB_URL_PREFIX}
+      - WEB_API_REQUEST_MAX_CHUNK_SIZE=${WEB_API_REQUEST_MAX_CHUNK_SIZE}
 
   nginx:
     image: "recognition-api:nginx"
