@@ -6,7 +6,7 @@ from aiohttp import web, ClientSession
 # Get environment variables
 APP_CONFIG = os.getenv("APP_CONFIG")
 URL_PREFIX = os.getenv("WEB_URL_PREFIX")
-API_CONNECTION_STRING = os.getenv("API_CONNECTION_STRING")
+API_CONNECTION_STRING = os.getenv("API_WEB_CONNECTION_STRING")
 
 class WebService():
     """
@@ -34,47 +34,56 @@ class WebService():
             log.exception("!! POST upload data error: Couldn't fetch request data !!\n")
             raise web.HTTPBadRequest("!! POST upload data error: Couldn't fetch request data !!\n")
         else:
-            chunkIndex = formDataChunk['chunkIndex']
-            totalChunks = formDataChunk['totalChunks']
-            file = formDataChunk['file']
+            try:
+                # Get data in chunks
+                chunkIndex = formDataChunk['chunkIndex']
+                totalChunks = formDataChunk['totalChunks']
+                file = formDataChunk['file']
 
-            if file.filename:
-                log.info("## Chunk number: {} ##".format(int(chunkIndex)))
-                uploadChunkedList.append(str(file.file.read()))
+                if file.filename:
+                    log.info("## Chunk number: {} ##".format(int(chunkIndex)))
+                    uploadChunkedList.append(str(file.file.read()))
+            except:
+                log.exception("!! POST upload data error: Couldn't fetch chunk of data !!\n")
+                raise web.HTTPBadRequest("!! POST upload data error: Couldn't fetch request data !!\n")
+            else:
+                try:
+                    if int(chunkIndex) == int(totalChunks) - 1:
+                        uploadChunkedList.append(str(file.file.read()))
+                        log.info("## Last chunk: {} ##".format(int(chunkIndex)))
+                        
+                        # Upload data to database
+                        uploadedChunkString = "".join(uploadChunkedList)
+                        uploadChunkLines = uploadedChunkString.split("\\n")
 
-            if int(chunkIndex) == int(totalChunks) - 1:
-                uploadChunkedList.append(str(file.file.read()))
-                log.info("## Last chunk: {} ##".format(int(chunkIndex)))
-                
-                # Upload data to database
-                uploadedChunkString = "".join(uploadChunkedList)
-                uploadChunkLines = uploadedChunkString.split("\\n")
+                        uploadLinesList = []
+                        for line in uploadChunkLines:
+                            if ("b" or "'b'" or '') not in line:
+                                uploadLinesList.append(line)
 
-                uploadLinesList = []
-                for line in uploadChunkLines:
-                    if ("b" or "'b'" or '') not in line:
-                        uploadLinesList.append(line)
+                        # Pop last element because it is always empty
+                        uploadLinesList.pop()
 
-                # Pop last element because it is always empty
-                uploadLinesList.pop()
+                        # Create JSON for database upload request
+                        uploadLinesJSONDict = {"FeatureSet": file.filename, "Features": uploadLinesList}
+                        uploadLinesJSON = json.dumps(uploadLinesJSONDict)
 
-                # Create JSON for database upload request
-                uploadLinesJSONDict = {"FeatureSet": file.filename, "Features": uploadLinesList}
-                uploadLinesJSON = json.dumps(uploadLinesJSONDict)
+                        log.info(API_CONNECTION_STRING)
 
-                log.info(API_CONNECTION_STRING)
-
-                # Make an async request to API
-                async with ClientSession() as session:
-                    async with session.post("http://127.0.0.1:5000/recognition-api/v1/uploadFeatureSet", json = uploadLinesJSON) as resp:
-                        if resp.status != 200:
-                            print(f'Error: {resp.status}')
-                            return web.HTTPBadRequest()
-                        else:
-                            response = await resp.json()
-                            log.info("## DB request response: {} ##".format(response))
-
-            return web.HTTPOk()
+                        # Make an async request to API
+                        async with ClientSession() as session:
+                            async with session.post(API_CONNECTION_STRING + "/uploadFeatureSet", json = uploadLinesJSON) as resp:
+                                if resp.status != 200:
+                                    print(f'Error: {resp.status}')
+                                    return web.HTTPBadRequest()
+                                else:
+                                    response = await resp.json()
+                                    log.info("## DB request response: {} ##".format(response))
+                except:
+                    log.exception("!! POST upload data error: Couldn't upload data to DB !!\n")
+                    return web.HTTPServerError()
+                else:
+                    return web.HTTPOk()
 
     @routes.get('/pcaPage')
     async def pcaPage(request):

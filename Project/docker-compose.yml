@@ -32,7 +32,7 @@ services:
       - API_URL_PREFIX=${API_URL_PREFIX}
 
   db:
-    image: postgres
+    image: postgres:15.1
     restart: unless-stopped
 
     # Debug tty connection
@@ -77,6 +77,7 @@ services:
       - frontend
 
     environment:
+      - API_WEB_CONNECTION_STRING=http://nginx:8000/recognition-api/v1
       - APP_CONFIG=${APP_CONFIG}
       - WEB_URL_PREFIX=${WEB_URL_PREFIX}
 

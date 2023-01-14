@@ -51,8 +51,8 @@ class API_Server():
             try:
                 session = ahsa.get_session(request)
             except:
-                log.exception("!! POST upload features error: Couldn't get SQLAlchemy ORM session !!\n")
-                raise web.HTTPServiceUnavailable("!! POST upload features error: Couldn't get SQLAlchemy ORM session !!\n")
+                log.exception("!! POST upload feature set error: Couldn't get SQLAlchemy ORM session !!\n")
+                raise web.HTTPServiceUnavailable("!! POST upload feature set error: Couldn't get SQLAlchemy ORM session !!\n")
             else:
                 try:
                     if await Recognition_DAL.upload_feature_set(session, postUploadedFeatureSetJSON):
@@ -60,8 +60,34 @@ class API_Server():
                     else:
                         return web.json_response({"status": 404, "message": "Requested upload feature set already exists"})
                 except:
-                    logging.exception("!! POST upload features error: Writing to DB error !!\n")
-                    raise web.HTTPInternalServerError(body = "!! POST upload features error: Writing to DB error !!\n")
+                    logging.exception("!! POST upload feature set error: Writing to DB error !!\n")
+                    raise web.HTTPInternalServerError(body = "!! POST upload feature set error: Writing to DB error !!\n")
+
+    # Extend existing feature set
+    @routes.post('/extendFeatureSet')
+    async def extend_feature_set(request):
+        log.info("## POST extend feature set ##")
+
+        try:
+            postExtendFeatureSetJSON = await request.json()
+        except:
+            log.exception("!! POST extend feature set error: Couldn't fetch request data !!\n")
+            raise web.HTTPBadRequest("!! POST extend feature set error: Couldn't fetch request data !!\n")
+        else:
+            try:
+                session = ahsa.get_session(request)
+            except:
+                log.exception("!! POST extend features error: Couldn't get SQLAlchemy ORM session !!\n")
+                raise web.HTTPServiceUnavailable("!! POST extend features error: Couldn't get SQLAlchemy ORM session !!\n")
+            else:
+                try:
+                    if await Recognition_DAL.extend_feature_set(session, postExtendFeatureSetJSON):
+                        return web.json_response({"status": 200, "messsage": "POST extend feature set successful"}) 
+                    else:
+                        return web.json_response({"status": 404, "message": "Requested extend feature set doesn't exists"})
+                except:
+                    logging.exception("!! POST extend feature set error: Writing to DB error !!\n")
+                    raise web.HTTPInternalServerError(body = "!! POST extend feature set error: Writing to DB error !!\n")
 
     # Delete feature set
     @routes.delete('/deleteFeatureSet')

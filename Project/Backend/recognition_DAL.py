@@ -27,8 +27,6 @@ class Recognition_DAL():
 
                 newFeatureSet = Feature_set(name = json_data.get("FeatureSet"))
 
-                logging.info(list(json_data.get("Features")))
-
                 if len(list(json_data.get("Features"))) != 0:
                     for element in list(json_data.get("Features")):
                             newFeature = Features(feature = element)
@@ -36,6 +34,29 @@ class Recognition_DAL():
                             session.add(newFeature)
 
                 session.add(newFeatureSet)
+                return True
+            else:
+                logging.error("!! POST upload feature set error: Inserted feature set {} already exists !!\n".format(str(json_data.get("FeatureSet"))))
+                return False
+
+    # POST extend feature set
+    async def extend_feature_set(session, json_data):
+        async with session.begin():
+            logging.info("## Session connected ##")
+
+            extendFeatureSetCheck = await session.execute(select(Feature_set).where(Feature_set.name == json_data.get("FeatureSet")).exists().select())
+
+            if extendFeatureSetCheck.fetchone()[0] is True:
+                logging.info("    * " + str(json_data.get("FeatureSet")))
+
+                existingFeatureSetID = await session.execute(select(Feature_set.ID).where(Feature_set.name == json_data.get("FeatureSet")))
+                existingFeatureSetID = existingFeatureSetID.fetchone()[0]
+
+                if len(list(json_data.get("Features"))) != 0:
+                    for element in list(json_data.get("Features")):
+                        newFeature = Features(feature = element, parent_id = existingFeatureSetID)
+                        session.add(newFeature)
+
                 return True
             else:
                 logging.error("!! POST upload feature set error: Inserted feature set {} already exists !!\n".format(str(json_data.get("FeatureSet"))))
@@ -91,35 +112,43 @@ class Recognition_DAL():
         for i in range(len(listOfFeatures)):
             listOfFeatures[i] = [element.strip() for element in listOfFeatures[i].split(",")]
 
-        # Parser for features with strings in them
-        listOfFeatureNames = []
+        try:
+            # Parser for features with strings in them
+            listOfFeatureNames = []
 
-        for i in range(len(listOfFeatures)):
-            for j in range(len(listOfFeatures[i])):
-                try:
-                    listOfFeatures[i][j] = float(listOfFeatures[i][j])
-                except ValueError:
-                    listOfFeatureNames.append(str(listOfFeatures[i][j])) 
-                    listOfFeatures[i].pop() 
+            for i in range(len(listOfFeatures)):
+                for j in range(len(listOfFeatures[i])):
+                    try:
+                        listOfFeatures[i][j] = float(listOfFeatures[i][j])
+                    except ValueError:
+                        listOfFeatureNames.append(str(listOfFeatures[i][j])) 
+                        listOfFeatures[i].pop() 
+        except:
+            logging.error("!! Failed at spliting feature data into numerical and other data !!")
+            return False
+        else:
+            try:
+                # Pricipal Component Analysis
+                numpyFeaturesList = np.array(listOfFeatures)
+                sc = StandardScaler()
+                X_normalised = sc.fit_transform(numpyFeaturesList)
 
-        # Pricipal Component Analysis
-        numpyFeaturesList = np.array(listOfFeatures)
-        sc = StandardScaler()
-        X_normalised = sc.fit_transform(numpyFeaturesList)
+                pca = PCA(n_components = json_data.get("NumOfComponents"))
+                X_pca = pca.fit_transform(X_normalised)
+                explained_variance = pca.explained_variance_ratio_
+                logging.info("## Explained variance for {} components: {} ##".format(json_data.get("NumOfComponents"), explained_variance))
 
-        pca = PCA(n_components = json_data.get("NumOfComponents"))
-        X_pca = pca.fit_transform(X_normalised)
-        explained_variance = pca.explained_variance_ratio_
-        logging.info("## Explained variance for {} components: {} ##".format(json_data.get("NumOfComponents"), explained_variance))
+                knn = KNeighborsClassifier(n_neighbors = 1)
+                scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
+                scores_pca = cross_val_score(knn, X_pca, listOfFeatureNames)
 
-        knn = KNeighborsClassifier(n_neighbors = 1)
-        scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
-        scores_pca = cross_val_score(knn, X_pca, listOfFeatureNames)
-
-        logging.info("## Original score after 1-NN evaluation: {} ##".format(scores_original))
-        logging.info("## PCA score after 1-NN evaluation: {} ##".format(scores_pca))
-
-        return {"FeatureSet": json_data.get("FeatureSet"), "X_pca": X_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
+                logging.info("## Original score after 1-NN evaluation: {} ##".format(scores_original))
+                logging.info("## PCA score after 1-NN evaluation: {} ##".format(scores_pca))
+            except:
+                logging.error("!! Failed in pricipal component analysis !!")
+                return False
+            else:
+                return {"FeatureSet": json_data.get("FeatureSet"), "X_pca": X_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
 
     # GET optimized PCA
     async def optimizedPrincipalComponentAnalysis(session, json_data):
@@ -141,42 +170,50 @@ class Recognition_DAL():
         for i in range(len(listOfFeatures)):
             listOfFeatures[i] = [element.strip() for element in listOfFeatures[i].split(",")]
 
-        # Parser for features with strings in them
-        listOfFeatureNames = []
-        for i in range(len(listOfFeatures)):
-            for j in range(len(listOfFeatures[i])):
-                try:
-                    listOfFeatures[i][j] = float(listOfFeatures[i][j])
-                except ValueError:
-                    listOfFeatureNames.append(str(listOfFeatures[i][j]))
-                    listOfFeatures[i].pop()
+        try:
+            # Parser for features with strings in them
+            listOfFeatureNames = []
+            for i in range(len(listOfFeatures)):
+                for j in range(len(listOfFeatures[i])):
+                    try:
+                        listOfFeatures[i][j] = float(listOfFeatures[i][j])
+                    except ValueError:
+                        listOfFeatureNames.append(str(listOfFeatures[i][j]))
+                        listOfFeatures[i].pop()
+        except:
+            logging.error("!! Failed at spliting feature data into numerical and other data !!")
+            return False
+        else:
+            try:
+                # Pricipal Component Analysis
+                numpyFeaturesList = np.array(listOfFeatures)
+                sc = StandardScaler()
+                X_normalised = sc.fit_transform(numpyFeaturesList)
 
-        # Pricipal Component Analysis
-        numpyFeaturesList = np.array(listOfFeatures)
-        sc = StandardScaler()
-        X_normalised = sc.fit_transform(numpyFeaturesList)
+                # Loop over all posible number of components for PCA and find the least number of components with requested accuracy
+                pca = PCA()
+                pca.fit(X_normalised)
+                cumsum = np.cumsum(pca.explained_variance_ratio_)
+                optimalNumOfComponents = np.argmax(cumsum >= json_data.get("RequestedVariance")) + 1
+            
+                # Execute PCA for optimal number of components for requested accuracy
+                pca = PCA(n_components = optimalNumOfComponents)
+                X_optimal_pca = pca.fit_transform(X_normalised)
+                explained_variance = pca.explained_variance_
+                logging.info("## Explained variance for {} components: {} ##".format(optimalNumOfComponents, explained_variance))
 
-        # Loop over all posible number of components for PCA and find the least number of components with requested accuracy
-        pca = PCA()
-        pca.fit(X_normalised)
-        cumsum = np.cumsum(pca.explained_variance_ratio_)
-        optimalNumOfComponents = np.argmax(cumsum >= json_data.get("RequestedVariance")) + 1
-    
-        # Execute PCA for optimal number of components for requested accuracy
-        pca = PCA(n_components = optimalNumOfComponents)
-        X_optimal_pca = pca.fit_transform(X_normalised)
-        explained_variance = pca.explained_variance_
-        logging.info("## Explained variance for {} components: {} ##".format(optimalNumOfComponents, explained_variance))
+                # k-NN model definition and cross-corelation comparison score
+                knn = KNeighborsClassifier(n_neighbors = 1)
+                scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
+                scores_pca = cross_val_score(knn, X_optimal_pca, listOfFeatureNames)
 
-        # k-NN model definition and cross-corelation comparison score
-        knn = KNeighborsClassifier(n_neighbors = 1)
-        scores_original = cross_val_score(knn, X_normalised, listOfFeatureNames)
-        scores_pca = cross_val_score(knn, X_optimal_pca, listOfFeatureNames)
-
-        logging.info("## Original score after 1-NN evaluation: {} ##".format(scores_original))
-        logging.info("## PCA score after 1-NN evaluation: {} ##".format(scores_pca))
-
-        return {"FeatureSet": json_data.get("FeatureSet"), "OptimalNumOfComponents": int(optimalNumOfComponents), "X_optimal_pca": X_optimal_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
+                logging.info("## Original score after 1-NN evaluation: {} ##".format(scores_original))
+                logging.info("## PCA score after 1-NN evaluation: {} ##".format(scores_pca))
+            except:
+                logging.error("!! Failed in optimized pricipal component analysis !!")
+                return False
+            else:
+                return {"FeatureSet": json_data.get("FeatureSet"), "OptimalNumOfComponents": int(optimalNumOfComponents), "X_optimal_pca": X_optimal_pca.tolist(), "ExplainedVariance": explained_variance.tolist(), "1-NNScoreOriginal": scores_original.tolist(), "1-NNScorePCA": scores_pca.tolist()}
 
     # GET hierarhical clustering
     async def hierarhicalClustering(session, json_data):
@@ -198,33 +235,41 @@ class Recognition_DAL():
         for i in range(len(listOfFeatures)):
             listOfFeatures[i] = [element.strip() for element in listOfFeatures[i].split(",")]
 
-        # Parser for features with strings in them
-        listOfFeatureNames = []
-        for i in range(len(listOfFeatures)):
-            for j in range(len(listOfFeatures[i])):
-                try:
-                    listOfFeatures[i][j] = float(listOfFeatures[i][j])
-                except ValueError:
-                    listOfFeatureNames.append(str(listOfFeatures[i][j]))
-                    listOfFeatures[i].pop()
-
-        # Hierarhical clustering using meassures: cityblock, euclidean and cosine
-        numpyFeaturesList = np.array(listOfFeatures)
-        distance_matrix = np.array([])
-
-        if json_data.get("Metric") == 'cosine':
-            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cosine')
-        elif json_data.get("Metric") == 'cityblock':
-            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cityblock')
-        elif json_data.get("Metric") == 'euclidean':
-            distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='euclidean')
+        try:
+            # Parser for features with strings in them
+            listOfFeatureNames = []
+            for i in range(len(listOfFeatures)):
+                for j in range(len(listOfFeatures[i])):
+                    try:
+                        listOfFeatures[i][j] = float(listOfFeatures[i][j])
+                    except ValueError:
+                        listOfFeatureNames.append(str(listOfFeatures[i][j]))
+                        listOfFeatures[i].pop()
+        except:
+            logging.error("!! Failed at spliting feature data into numerical and other data !!")
+            return False
         else:
-            logging.error("!! Metric attribute not found in JSON !!\n")
+            try:
+                # Hierarhical clustering using meassures: cityblock, euclidean and cosine
+                numpyFeaturesList = np.array(listOfFeatures)
+                distance_matrix = np.array([])
 
-        cluster = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average')
+                if json_data.get("Metric") == 'cosine':
+                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cosine')
+                elif json_data.get("Metric") == 'cityblock':
+                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cityblock')
+                elif json_data.get("Metric") == 'euclidean':
+                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='euclidean')
+                else:
+                    logging.error("!! Metric attribute not found in JSON !!\n")
 
-        test = cluster.fit(distance_matrix)
-        
-        logging.info(test)
+                cluster = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average')
 
-        return {"FeatureSet": json_data.get("FeatureSet"), "Metric": json_data.get("Metric"), "DistanceMatrix": distance_matrix.tolist()}
+                test = cluster.fit(distance_matrix)
+                
+                logging.info(test)
+            except:
+                logging.error("!! Failed in hierarhical clustering !!")
+                return False
+            else:
+                return {"FeatureSet": json_data.get("FeatureSet"), "Metric": json_data.get("Metric"), "DistanceMatrix": distance_matrix.tolist()}
