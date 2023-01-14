@@ -3,7 +3,7 @@
 University subject of patter recognition laboratory exercises and final project.
 
 
-##Exercise 1
+## Exercise 1
 
 The first exercise is split into 3 parts:
 - Exercis 1a: Convert selected image to grayscale and threshold the image using maximized information
@@ -15,6 +15,22 @@ All 3 scripts are written in 3 different versions:
 - Asynchronous implementation using asyncio
 - Multiple core usage implementation using multiprocessing
 
+### Usage examples
+- Basic implementation
+```
+python3 exercise1X.py gear1.jpg 1
+```
+- Asynchronous implementation
+```
+python3 exercise1X_asyncio.py gear1.jpg 1
+```
+- Multiple core usage implementation
+```
+python3 exercise1X_multiprocessing.py
+```
+
+Where X is the version we want to run (a, b or c).
+
 
 ## Exercise 2
 
@@ -23,6 +39,12 @@ The second exercise tests K-NN recognizer using previous cosine descriptors as f
 Script is written in 2 different versions:
 - Basic implementation
 - Asynchronous implementation using asyncio
+
+### Usage examples
+- Basic/asynchronous implementation
+```
+python3 exercise2.py
+```
 
 
 ## Project
