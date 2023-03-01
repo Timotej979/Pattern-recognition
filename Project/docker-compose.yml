@@ -52,7 +52,7 @@ services:
       - ${APP_DB_OUT_PORT}:5432
 
     volumes:
-      - ./db/evt-data:/var/lib/postgresql/data/
+      - ./db/data:/var/lib/postgresql/data/
 
   web:
     image: "frontend:v1"
