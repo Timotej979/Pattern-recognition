@@ -49,6 +49,9 @@ python3 exercise2.py
 
 ## Project
 
-The final project is a pattern recognition API. It uses aiohttp server in combination with Postgres DB and NGINX reverse proxy. Deployment is done via docker compose.
+The final project is a pattern recognition API. It uses aiohttp server in combination with Postgres DB and NGINX reverse proxy. Deployment is done via docker compose. 
+
+Curently implemented features are as follows:
+- Basic API and DB for feature upload and chunked upload webpage
 
 Still work in progress.
