@@ -53,5 +53,10 @@ The final project is a pattern recognition API. It uses aiohttp server in combin
 
 Curently implemented features are as follows:
 - Basic API and DB for feature upload and chunked upload webpage
+- All possible web requests are available in "test_requests.txt" file in Backend folder
+- Uploaded dataset should be in the following format: 
+```
+numeric, numeric, numeric, ... , numeric, label
+```
 
 Still work in progress.
