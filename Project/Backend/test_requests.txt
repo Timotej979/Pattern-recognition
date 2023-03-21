@@ -33,7 +33,7 @@ TEST REQUESTS:
         curl --request GET --header "Content-Type: application/json" --data '{"FeatureSet": "iris", "RequestedVariance": 0.95}' http://127.0.0.1:5000/recognition-api/v1/optimizedPrincipalComponentAnalysis
 
         GET hierarhicalClustering TODO
-        curl --request GET --header "Content-Type: application/json" --data '{"FeatureSet": "iris", "Metric": "euclidean", "NumOfClusters": 2}' http://127.0.0.1:5000/recognition-api/v1/hierarhicalClustering
+        curl --request GET --header "Content-Type: application/json" --data '{"FeatureSet": "iris", "Metric": "euclidean", "NumOfClusters": 2, "Linkage": "average"}' http://127.0.0.1:5000/recognition-api/v1/hierarhicalClustering
 
 UPLOAD
 IRIS dataset json:
