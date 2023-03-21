@@ -11,7 +11,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import pairwise_distances
-
+from scipy.cluster.hierarchy import linkage
 
 class Recognition_DAL():
 
@@ -250,26 +250,41 @@ class Recognition_DAL():
             return False
         else:
             try:
-                # Hierarhical clustering using meassures: cityblock, euclidean and cosine
+                # Hierarhical clustering
                 numpyFeaturesList = np.array(listOfFeatures)
                 distance_matrix = np.array([])
 
+                # Use standard scaler to normalise data
+                sc = StandardScaler()
+                X_normalised = sc.fit_transform(numpyFeaturesList)
+
+                # Define different meassures to use in clustering
                 if json_data.get("Metric") == 'cosine':
-                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cosine')
+                    distance_matrix = pairwise_distances(X_normalised.T, metric='cosine')
                 elif json_data.get("Metric") == 'cityblock':
-                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='cityblock')
+                    distance_matrix = pairwise_distances(X_normalised.T, metric='cityblock')
                 elif json_data.get("Metric") == 'euclidean':
-                    distance_matrix = pairwise_distances(numpyFeaturesList.T, metric='euclidean')
+                    distance_matrix = pairwise_distances(X_normalised.T, metric='euclidean')
                 else:
                     logging.error("!! Metric attribute not found in JSON !!\n")
 
-                cluster = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average')
+                if json_data.get("NumOfClusters") is not None:
+                    if json_data.get("Linkage") is not None:
+                        cluster = AgglomerativeClustering(n_clusters=json_data.get("NumOfClusters"), affinity='precomputed', linkage=json_data.get("Linkage"))
+                    else:
+                        cluster = AgglomerativeClustering(n_clusters=json_data.get("NumOfClusters"), affinity='precomputed', linkage='average')
+                else:
+                    logging.info("## Settingdefault value for number of clusters to 2 ##")
+                    cluster = AgglomerativeClustering(n_clusters=2, affinity='precomputed', linkage='average')
 
-                test = cluster.fit(distance_matrix)
-                
-                logging.info(test)
+                cluster.fit(distance_matrix)
+                if json_data.get("Linkage") is not None:
+                    link_matrix = linkage(distance_matrix, method=json_data.get("Linkage"), metric=json_data.get("Metric"))
+                else:
+                    link_matrix = linkage(distance_matrix, method='average', metric=json_data.get("Metric"))
+
             except:
                 logging.error("!! Failed in hierarhical clustering !!")
                 return False
             else:
-                return {"FeatureSet": json_data.get("FeatureSet"), "Metric": json_data.get("Metric"), "DistanceMatrix": distance_matrix.tolist()}
+                return {"FeatureSet": json_data.get("FeatureSet"), "Metric": json_data.get("Metric"), "DistanceMatrix": distance_matrix.tolist(), "LinkageMatrix": link_matrix.tolist(), "ClusterLabels": cluster.labels_.tolist()}
