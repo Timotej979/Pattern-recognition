@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from db_model import Feature_set, Features
 
 from sklearn.preprocessing import StandardScaler
@@ -83,9 +83,10 @@ class Recognition_DAL():
             logging.info("## Session connected ##")
 
             listOfFeatureSets = await session.execute(select(Feature_set.name))
-            
+            numOfRows = await session.execute(select(func.count()).select_from(Features).group_by(Features.parent_id))
+
             if listOfFeatureSets != None:
-                listOfFeatureSetsJSON = {"FeatureSets": [element[0] for element in tuple(listOfFeatureSets.fetchall())]}
+                listOfFeatureSetsJSON = {"FeatureSets": [element[0] for element in tuple(listOfFeatureSets.fetchall())], "NumOfRows": [element[0] for element in tuple(numOfRows.fetchall())]}
                 return listOfFeatureSetsJSON
             else:
                 logging.error("!! No feature sets found in DB !!\n")

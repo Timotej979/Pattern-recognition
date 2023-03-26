@@ -18,9 +18,9 @@ class WebService():
     routes = web.RouteTableDef()
 
     # Index webpage
-    @routes.get('/uploadPage')
+    @routes.get('/dashboard')
     async def uploadPage(request):
-        return web.FileResponse("./web/upload_page.html")
+        return web.FileResponse("./web/dashboard.html")
 
     @routes.post('/uploadData')
     async def uploadData(request):
@@ -123,17 +123,25 @@ class WebService():
                 else:
                     return web.HTTPOk()
 
-    @routes.get('/pcaPage')
-    async def pcaPage(request):
-        return web.Response(text = "Got pca page")
+    @routes.get('/getFeatureSets')
+    async def getFeatureSets(request):
+        log.info("## GET getFeatureSets received ##")
 
-    @routes.get('/optimizedPcaPage')
-    async def optimizedPcaPage(request):
-        return web.Response(text = "Got optimized pca page")
-
-    @routes.get('/hierarhicalClusteringPage')
-    async def hierarhicalClusteringPage(request):
-        return web.Response(text = "Got hierarhical clustering page")
+        try:
+            # Make an async request to API
+            async with ClientSession() as session:
+                async with session.get(API_CONNECTION_STRING + "/getListOfFeatureSets") as resp:
+                    if resp.status != 200:
+                        log.exception("!! GET getFeatureSets error: Failed to fetch feature sets !!\n")
+                        return web.HTTPBadRequest("!! GET getFeatureSets error: Failed to fetch feature sets !!\n")
+                    else:
+                        response = await resp.json()
+                        log.info("## DB request response: {} ##".format(response))
+        except:
+            log.exception("!! GET getFeatureSets error: Couldn't fetch feature sets from DB !!\n")
+            return web.HTTPServerError("!! GET getFeatureSets error: Couldn't fetch feature sets from DB !!\n")
+        else:
+            return web.json_response(response)
 
     ############################################################################################################################################
     ############################################################################################################################################
