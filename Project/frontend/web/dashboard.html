@@ -30,8 +30,9 @@
                 <div class="dropzone">
                     <div class="content">
                         <img src="https://100dayscss.com/codepen/upload.svg">
-                        <span class="filename"></span>
-                        <input id="fileupload" type="file"/>
+                        <div style="height: 20px;"></div>
+                        <span class="filename" id="filename"></span>
+                        <input id="fileupload" type="file" style="width: 75px; overflow: hidden;"/>
                     </div>
                 </div>
                 <button id="upload-button" class="upload-btn" onclick="uploadFile()">UPLOAD</button>
@@ -50,6 +51,20 @@
                 </table>    
             </div>
         </div>
+
+        <!-- Feature set control buttons -->
+        <div class="control_frame">
+            <h1>FEATURE SET CONTROL</h1>
+            <div class="center">
+                <button id="Heatmap" class="control-btn" onclick="heatmap()">HEATMAP</button>
+                <button id="Principal Component Analysis" class="control-btn" onclick="PCA()">PRINCIPAL COMPONENT ANALYSIS</button>
+                <button id="Hierarhical Clustering" class="control-btn" onclick="hierarchicalClustering()">HIERARCHICAL CLUSTERING</button>
+            </div>
+        </div>
+
+
+
+
             
     </body>
 </html>

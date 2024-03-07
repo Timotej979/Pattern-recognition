@@ -32,7 +32,9 @@ async function uploadFile() {
                 }
 
                 if (codeCounter == chunks.length) {
+                    // Display alert and reload webpage
                     alert("Data upload  was successful.");
+                    window.location.reload();
                 }
             } else {
                 alert("Data upload failed.");

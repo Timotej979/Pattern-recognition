@@ -13,7 +13,7 @@ services:
     #tty: true
 
     build:
-      context: ./Backend
+      context: ./backend
 
     depends_on:
       db: 
@@ -65,7 +65,7 @@ services:
     #tty: true
 
     build:
-      context: ./Frontend
+      context: ./frontend
 
     depends_on:
       db:
