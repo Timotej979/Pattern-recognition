@@ -61,3 +61,8 @@ numeric, numeric, numeric, ... , numeric, label
 ```
 
 Still work in progress.
+
+
+### References
+
+[1] Markelle Kelly, Rachel Longjohn, Kolby Nottingham, The UCI Machine Learning Repository, https://archive.ics.uci.edu
