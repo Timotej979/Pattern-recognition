@@ -16,19 +16,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Move to ./Project directory
-        run: cd ./Project && ls
-
       - name: Build the services
-        run: ls && docker compose build
+        run: |
+          cd ./Project
+          docker compose build
 
       - name: Start the services
-        run: ls && docker compose up -d
+        run: |
+          cd ./Project
+          docker compose up -d
 
       - name: Run E2E Test
         run: |
+          cd ./Project/tests
           chmod +x ./Project/tests/e2e.sh
           ./Project/tests/e2e.sh
 
       - name: Stop the services
-        run: docker compose down
+        run: |
+          cd ./Project
+          docker compose down

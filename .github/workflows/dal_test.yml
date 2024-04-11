@@ -14,26 +14,22 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.11
 
-    - name: Move to the ./Project/backend directory
-      run: cd ./Project/backend && ls
-
     - name: Install python dependencies
       run: |
-        ls
+        cd ./Project/backend
         python -m pip install --upgrade pip
         pip install poetry
         poetry config virtualenvs.in-project true --local &&
         poetry install --only main
 
-    - name: Move to ./Project/backend/dal directory
-      run: cd ./Project/backend/dal && ls
-
     - name: Run pytest
-      run: poetry run pytest
+      run: |
+        cd ./Project/backend/dal
+        poetry run pytest
