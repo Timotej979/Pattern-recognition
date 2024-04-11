@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Move to ./Project directory
-        run: cd ./Project
+        run: cd ./Project && ls
 
       - name: Build the services
         run: docker compose build

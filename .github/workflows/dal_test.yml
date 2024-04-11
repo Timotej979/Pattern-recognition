@@ -22,7 +22,7 @@ jobs:
         python-version: 3.11
 
     - name: Move to the ./Project/backend directory
-      run: cd ./Project/backend
+      run: cd ./Project/backend && ls
 
     - name: Install python dependencies
       run: |
@@ -32,7 +32,7 @@ jobs:
         poetry install --only main
 
     - name: Move to ./Project/backend/dal directory
-      run: cd ./Project/backend/dal
+      run: cd ./Project/backend/dal && ls
 
     - name: Run pytest
       run: poetry run pytest
