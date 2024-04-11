@@ -33,6 +33,7 @@ done
 # Check if all services are healthy
 if ! docker compose ps --services | xargs -n 1 docker inspect --format='{{.State.Health.Status}}' | grep -q 'unhealthy'; then
     echo "All services are healthy."
+    sleep 3  # Add a delay to not get workflow error
 else
     echo "Some services are unhealthy."
     exit 1

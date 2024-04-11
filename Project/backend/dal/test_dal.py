@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 from testcontainers.postgres import PostgresContainer
-from ..dal.dal import Recognition_DAL
-from ..model.model import Feature_set, Features
+from dal.dal import Recognition_DAL
+from model.model import Feature_set, Features
 
 @pytest.fixture(scope="module")
 async def db_session():
