@@ -21,16 +21,17 @@ jobs:
       with:
         python-version: 3.11
 
-    - name: Move to the ./backend directory
+    - name: Move to the ./Project/backend directory
       run: cd ./Project/backend
 
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install
+        poetry config virtualenvs.in-project true --local &&
+        poetry install --only main
 
-    - name: Move to ./dal directory
+    - name: Move to ./Project/backend/dal directory
       run: cd ./Project/backend/dal
 
     - name: Run pytest

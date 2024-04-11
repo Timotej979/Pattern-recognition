@@ -16,6 +16,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Move to ./Project directory
+        run: cd ./Project
+
       - name: Build the services
         run: docker compose build
 
