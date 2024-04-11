@@ -6,9 +6,8 @@ import aiohttp_sqlalchemy as ahsa
 from aiohttp import web
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from recognition_DAL import Recognition_DAL
-from db_model import metadata
-
+from dal.dal import Recognition_DAL
+from model.model import metadata
 
 # Get environment variables
 APP_CONFIG = os.getenv("APP_CONFIG")

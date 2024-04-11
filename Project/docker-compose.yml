@@ -3,7 +3,7 @@ services:
   api:
     image: "recognition-api:v1"
     restart: unless-stopped
-    command: sh -c "poetry run python /api/recognition_api.py"
+    command: sh -c "poetry run python /api/api.py"
     build:
       context: ./backend
     depends_on:

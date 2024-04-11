@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from sqlalchemy import select, delete, func
-from db_model import Feature_set, Features
+from model.model import Feature_set, Features
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA

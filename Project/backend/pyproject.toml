@@ -17,6 +17,8 @@ aiohttp-sqlalchemy = "^0.34.0"
 numpy = "^1.17.3"
 scikit-learn = "^1.2.0"
 
+pytest = "^6.2.5"
+
 [tool.poetry.dev-dependencies]
 
 [build-system]

@@ -1,0 +1,29 @@
+name: End-to-End Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build the services
+        run: docker compose build
+
+      - name: Start the services
+        run: docker compose up -d
+
+      - name: Run E2E Test
+        run: ./Project/tests/e2e.sh
+
+      - name: Stop the services
+        run: docker compose down
