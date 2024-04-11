@@ -29,8 +29,8 @@ jobs:
       - name: Run E2E Test
         run: |
           cd ./Project/tests
-          chmod +x ./Project/tests/e2e.sh
-          ./Project/tests/e2e.sh
+          chmod +x e2e.sh
+          ./e2e.sh
 
       - name: Stop the services
         run: |
