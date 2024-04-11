@@ -17,6 +17,12 @@ class WebService():
     # Configure rotes table and all available methods
     routes = web.RouteTableDef()
 
+    # Healthcheck
+    @routes.get('/healthz')
+    async def healthz(request):
+        log.info("WEB healthcheck running...")
+        return web.Response(text="## WEB healthcheck successfull ##\n")
+
     # Index webpage
     @routes.get('/dashboard')
     async def uploadPage(request):

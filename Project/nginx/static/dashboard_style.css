@@ -219,7 +219,18 @@ th, td {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+.control-div {
+	margin: 20px 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); /* Adjust the number of columns as needed */
+	gap: 20px; /* Adjust the spacing between buttons as needed */
+	justify-content: center;
+	align-items: center;   
+}
+
 .control-btn {
+	padding: 10px 15px;
+    margin-bottom: 40px;
 	height: 40px;
 	background: #3a32ad;
 	border-radius: 3px;

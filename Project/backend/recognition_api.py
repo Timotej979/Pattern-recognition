@@ -32,8 +32,8 @@ class API_Server():
     # Healthcheck
     @routes.get('/healthz')
     async def health_check(request):
-        log.info("Api test running\n")
-        return web.Response(text="## API test successfull ##\n")
+        log.info("API healthcheck running...")
+        return web.Response(text="## API healthcheck successfull ##\n")
 
 
     ######################################################## API METHODS ###############################################################
