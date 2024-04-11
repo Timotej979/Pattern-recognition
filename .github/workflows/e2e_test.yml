@@ -20,13 +20,15 @@ jobs:
         run: cd ./Project && ls
 
       - name: Build the services
-        run: docker compose build
+        run: ls && docker compose build
 
       - name: Start the services
-        run: docker compose up -d
+        run: ls && docker compose up -d
 
       - name: Run E2E Test
-        run: ./Project/tests/e2e.sh
+        run: |
+          chmod +x ./Project/tests/e2e.sh
+          ./Project/tests/e2e.sh
 
       - name: Stop the services
         run: docker compose down

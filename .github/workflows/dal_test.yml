@@ -26,6 +26,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
+        ls
         python -m pip install --upgrade pip
         pip install poetry
         poetry config virtualenvs.in-project true --local &&
