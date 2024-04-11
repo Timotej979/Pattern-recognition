@@ -31,5 +31,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        cd ./Project/backend/dal
+        cd ./Project/backend
         poetry run pytest
