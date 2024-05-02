@@ -1,0 +1,21 @@
+services:
+
+  web:
+    image: "recognition-web:v1"
+    restart: unless-stopped
+    build:
+      context: ./frontend/web
+      args:
+        - WEB_PYTHON_VERSION
+        - WEB_POETRY_VERSION
+    environment:
+      - API_WEB_CONNECTION_STRING=http://nginx:8000/recognition-api/v1
+      - APP_CONFIG
+      - WEB_URL_PREFIX
+      - WEB_API_REQUEST_MAX_CHUNK_SIZE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/recognition-web/v1/healthz"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 5

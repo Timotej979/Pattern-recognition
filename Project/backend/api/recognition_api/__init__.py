@@ -1,0 +1,1 @@
+# Initialization of the recognition-api module

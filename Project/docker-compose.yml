@@ -3,9 +3,11 @@ services:
   api:
     image: "recognition-api:v1"
     restart: unless-stopped
-    command: sh -c "poetry run python /api/api.py"
     build:
-      context: ./backend
+      context: ./backend/api
+      args:
+        - API_PYTHON_VERSION
+        - API_POETRY_VERSION
     depends_on:
       db: 
         condition: service_healthy
@@ -40,7 +42,7 @@ services:
     ports:
       - ${APP_DB_OUT_PORT}:5432
     volumes:
-      - ./db/data:/var/lib/postgresql/data/
+      - ./backend/postgres-docker/data:/var/lib/postgresql/data/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USERNAME} -d ${APP_DB_DBNAME}"]
       interval: 10s
@@ -50,9 +52,11 @@ services:
   web:
     image: "recognition-web:v1"
     restart: unless-stopped
-    command: sh -c "poetry run python /frontend/webserver.py"
     build:
-      context: ./frontend
+      context: ./frontend/web
+      args:
+        - WEB_PYTHON_VERSION
+        - WEB_POETRY_VERSION
     depends_on:
       db:
         condition: service_healthy

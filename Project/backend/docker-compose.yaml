@@ -1,0 +1,45 @@
+services:
+  
+  api:
+    image: "recognition-api:v1"
+    restart: unless-stopped
+    build:
+      context: ./backend/api
+      args:
+        - API_PYTHON_VERSION
+        - API_POETRY_VERSION
+    depends_on:
+      db: 
+        condition: service_healthy
+    environment:
+      - API_DB_CONNECTION_STRING=postgresql+asyncpg://${APP_DB_USERNAME}:${APP_DB_PASSWORD}@db:5432/${APP_DB_DBNAME}
+      - APP_CONFIG
+      - API_DB_MAX_CONNECTIONS
+      - API_DB_POOL_RECYCLE
+      - API_DB_MAX_OVERFLOW
+      - API_DB_POOL_TIMEOUT
+      - API_URL_PREFIX
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/recognition-api/v1/healthz"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:15.1
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD} 
+      - POSTGRES_USER=${APP_DB_USERNAME}
+      - POSTGRES_DB=${APP_DB_DBNAME} 
+    # Comment out ports here if you do not want outside DB access
+    ports:
+      - ${APP_DB_OUT_PORT}:5432
+    volumes:
+      - ./postgres-docker/data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USERNAME} -d ${APP_DB_DBNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

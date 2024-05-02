@@ -16,11 +16,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run E2E test for all services
+      - name: Build and start the services
         run: |
           cd ./Project
           docker compose build
           docker compose up -d
+
+      - name: Run E2E Test
+        run: |
+          cd ./Project/tests
           chmod +x e2e.sh
           ./e2e.sh
+
+      - name: Stop the services
+        run: |
+          cd ./Project
           docker compose down
