@@ -43,6 +43,7 @@ COPY recognition_web ./recognition_web
 RUN poetry lock 
 # Install the dependencies
 RUN poetry config virtualenvs.path {project-dir}/.venv && \
+    poetry config virtualenvs.in-project true && \
 #    poetry config --list && \
     poetry install --only=main --no-root --no-interaction --no-ansi && \
     poetry build
