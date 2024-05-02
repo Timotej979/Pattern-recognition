@@ -49,20 +49,20 @@ python3 exercise2.py
 
 ## Project
 
-The final project is a pattern recognition API. It uses aiohttp server in combination with Postgres DB and NGINX reverse proxy. Deployment is done via docker compose. 
+The final project is a pattern recognition API for exploratory data analysis. More information can be found in the respective README file in the Project folder.
 
-Curently implemented features are as follows:
-- Basic API and DB for feature upload and chunked upload webpage
-- All possible web requests are available in "test_requests.txt" file in Backend folder
-- Uploaded dataset should be in the following format: 
+The project is still in development and is not yet finished...
 
-```
-numeric, numeric, numeric, ... , numeric, label
-```
-
-Still work in progress.
-
-
-### References
-
-[1] Markelle Kelly, Rachel Longjohn, Kolby Nottingham, The UCI Machine Learning Repository, https://archive.ics.uci.edu
+Curent roadmap:
+- [x] Create a basic API for feature set creation/deletion
+- [x] Create a basic API for exploratory data analysis using PCA and hierarchical clustering
+- [x] Create a basic nginx reverse proxy for the frontend and backend
+- [x] Create a basic wrapper for various web requests done from the frontend
+- [x] Deploy the project using docker compose
+- [ ] Create a basic frontend for the API
+- [ ] Add more features to the API
+- [ ] Add more features to the frontend
+- [ ] Deploy the project using Kubernetes
+    - [ ] Add a DB k8s deployment
+    - [ ] Add a API k8s deployment
+    - [ ] Add a frontend k8s deployment

@@ -69,3 +69,5 @@ RUN ./.venv/bin/pip install *.whl
 #This will initialize the python's virtual env (so we don't need to call source .venv/bin/activate)
 ENV PATH="/app/.venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/app/.venv"
+# Invoke the application
+CMD ["python", "/app/.venv/lib/python3.11/site-packages/recognition_api/main.py"]

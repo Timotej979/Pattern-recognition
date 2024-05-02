@@ -39,8 +39,8 @@ services:
       - POSTGRES_USER=${APP_DB_USERNAME}
       - POSTGRES_DB=${APP_DB_DBNAME} 
     # Comment out ports here if you do not want outside DB access
-    ports:
-      - ${APP_DB_OUT_PORT}:5432
+    #ports:
+    #  - ${APP_DB_OUT_PORT}:5432
     volumes:
       - ./backend/postgres-docker/data:/var/lib/postgresql/data/
     healthcheck:
@@ -63,7 +63,7 @@ services:
       api:
         condition: service_healthy
     networks:
-      - frontend-nginx
+      - web-nginx
     environment:
       - API_WEB_CONNECTION_STRING=http://nginx:8000/recognition-api/v1
       - APP_CONFIG
@@ -77,13 +77,13 @@ services:
       retries: 5
 
   nginx:
-    image: "recognition-api:nginx"
+    image: "recognition-nginx:v1"
     restart: unless-stopped
     build: 
       context: ./nginx
     networks:
       - api-nginx
-      - frontend-nginx
+      - web-nginx
     ports:
       - ${NGINX_OUT_PORT}:8000
     depends_on:
@@ -104,4 +104,4 @@ services:
 networks:
   db-api:
   api-nginx:
-  frontend-nginx:
+  web-nginx:
