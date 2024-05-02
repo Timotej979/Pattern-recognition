@@ -1,9 +1,9 @@
 # Build argument
 ARG API_PYTHON_VERSION=3.11-alpine
 
-FROM python:${API_PYTHON_VERSION} as base
 ## Step 1: configure base
 ##=============================================================================
+FROM python:${API_PYTHON_VERSION} as base
 # PYTHONUNBUFFERED=1: stdout and stderr streams are sent straight to terminal (e.g. your container log) without
 # being first buffered #and that you can see the output of your application in real time.
 # PYTHONHASHSEED: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHASHSEED
@@ -15,8 +15,8 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN addgroup -g 1000 apprunner && \
     adduser -u 1000 -G apprunner -h /home/apprunner -D apprunner && \
     mkdir /app && chown -R apprunner:apprunner /app
-# Install required dependencies to build numpy and scikit-learn from source
-RUN apk add --no-cache g++ gcc musl-dev
+# Install required dependencies to make curl available and build numpy and scikit-learn from source
+RUN apk add --no-cache curl g++ gcc musl-dev
 # Set the working directory in the container
 WORKDIR /app
 
@@ -43,7 +43,6 @@ COPY recognition_api ./recognition_api
 RUN poetry run pip install numpy scikit-learn && \
     poetry add numpy scikit-learn && \
     poetry lock 
-
 # Install the dependencies
 RUN poetry config virtualenvs.path {project-dir}/.venv && \
     poetry config virtualenvs.in-project true && \
@@ -55,25 +54,18 @@ RUN poetry config virtualenvs.path {project-dir}/.venv && \
 ## Step 3:
 ##=============================================================================
 FROM base as final
-
 #Copy the dependencies and actual distribution package
 COPY --from=builder /app/.venv ./.venv
 COPY --from=builder /app/dist .
- 
 #Here -> we are comying some environmental config file. Your
 #user-case may not need this. If you need to environmentalize your docker images -> 
 #then make sure to include some ENV_NAME argument and .env file into your container build process
 #COPY stack/env-${ENV_NAME}/.env .
 RUN chown -R apprunner:apprunner /app
-  
 #Switch to this user 
 USER apprunner
-  
 #Install our distribution package (we built python wheel in a previous step)
 RUN ./.venv/bin/pip install *.whl
-  
 #This will initialize the python's virtual env (so we don't need to call source .venv/bin/activate)
 ENV PATH="/app/.venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/app/.venv"
-
-CMD ["python", "/app/.venv/lib/python3.11/site-packages/recognition_api/main.py"]

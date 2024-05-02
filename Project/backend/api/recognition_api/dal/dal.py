@@ -275,7 +275,7 @@ class Recognition_DAL():
                     else:
                         cluster = AgglomerativeClustering(n_clusters=json_data.get("NumOfClusters"), affinity='precomputed', linkage='average')
                 else:
-                    logging.info("## Settingdefault value for number of clusters to 2 ##")
+                    logging.info("## Setting default value for number of clusters to 2 ##")
                     cluster = AgglomerativeClustering(n_clusters=2, affinity='precomputed', linkage='average')
 
                 cluster.fit(distance_matrix)

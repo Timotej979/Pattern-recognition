@@ -26,6 +26,7 @@ jobs:
         cd ./Project/backend/api
         python -m pip install --upgrade pip
         pip install poetry
+        poetry config virtualenvs.path {project-dir}.venv &&
         poetry config virtualenvs.in-project true --local &&
         poetry install --only main
 
