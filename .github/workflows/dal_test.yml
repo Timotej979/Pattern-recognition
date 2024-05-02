@@ -23,7 +23,7 @@ jobs:
 
     - name: Install python dependencies
       run: |
-        cd ./Project/backend
+        cd ./Project/backend/api
         python -m pip install --upgrade pip
         pip install poetry
         poetry config virtualenvs.in-project true --local &&
@@ -31,5 +31,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        cd ./Project/backend
+        cd ./Project/backend/api
         poetry run pytest dal
