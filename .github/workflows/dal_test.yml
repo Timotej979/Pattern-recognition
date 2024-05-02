@@ -32,5 +32,6 @@ jobs:
 
     - name: Run pytest
       run: |
-        cd ./Project/backend/api
+        cd ./Project/backend/api/recognition_api
+        ls -all
         poetry run pytest dal
